@@ -1,0 +1,45 @@
+
+	/* CREATE[{%for verb in methods %}{%if not loop.first%}|{%endif%}{{verb}}{%endfor%}] */
+	public function {{action}}Action()
+	{
+		$request = $this->getRequest();
+{%for key in primaryForeignKey %}
+{{key}}
+{%endfor%}
+{% set owner_mandatory = false %}
+{% set op = '' %}
+{% set conditions = '' %}
+{%for key in primaryForeignKey %}
+		$mandatory_{{key}} = (int) $this->params()->fromRoute('{{key}}', 0);
+{% set conditions = conditions ~ op ~ '$route_' ~ key %}
+{% set op = ' && ' %}
+{%endfor%}
+
+{%if owner_mandatory %}
+		if (! ({{conditions}}) ) {
+			return $this->redirect()->toRoute('{{module|slugify}}', ['action' => '{{action}}']);// statement list; flashMessage select a statement to add operation manualy
+		}
+{%endif%}
+		$form = new {{table.name|entityify}}Form(False, 'create_{{table.name|slugify}}');
+		$form->get('submit')->setValue('Add');
+		$form->get('statements_id')->setValue($route_statements_id);// error if POST exist
+
+		if (! $request->isPost()) {
+			return ['form' => $form];
+		}
+
+		{{table.name|variabilize}} = new {{table.name|entityify}}();
+		//$form->setHydrator(new ClassMethodsHydrator());
+		$form->bind({{table.name|variabilize}});
+		$inputFilter = {{table.name|variabilize}}->getInputFilter(False, True);// hasPrimaryKey=False
+		$form->setInputFilter($inputFilter);
+		$form->setData($request->getPost());
+
+		if (! $form->isValid()) {
+			return ['form' => $form];
+		}
+
+		$this->table->save{{table.name|entityify}}({{table.name|variabilize}});
+		return $this->redirect()->toRoute('{{module|slugify}}');
+	}
+

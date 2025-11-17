@@ -1,0 +1,37 @@
+<?php
+{# Simple comment #}
+
+// generate by github.com/topica/automatos-laminas on {{ "now"|date("d/m/Y") }}
+// <root>/module/{{ module }}/view/{{ controller|lower }}/{{ action }}.phtml:
+
+
+$title = 'My {{table.name|verbalize(true)}}';
+//$this->headTitle($title);
+?><h1><?= $this->escapeHtml($title) ?></h1>
+<p>
+    <a href="<?= $this->url('{{ controller|lower }}', ['action' => '{{ action }}']) ?>">Add new {{table.name|verbalize(false, true)}}</a>
+</p>
+
+<table class="table">
+    <tr>
+{% for column in table.columns %}
+        <th><?= $this->translate('thead_{{table.name}}-{{ column.name }}'); ?></th>
+{% endfor %}
+        <th>&nbsp;</th>
+    </tr>
+
+<?php foreach ( {{ table.name|variabilize(true) }} as {{ table.name|variabilize }}) : ?>    <tr>
+{% for column in table.columns %}
+        <td><?= $this->escapeHtml({{ table.name|variabilize }}->{{ column.name }}) ?></td>
+{% endfor %}
+
+        <td>
+            <a href="<?= $this->url('operation', ['action' => 'edit'{% for key in primaryKey %}, '{{ key }}'=>{{ table.name|variabilize }}->{{ key }}{% endfor %}]) ?>">Edit</a>
+            <a href="<?= $this->url('operation', ['action' => 'delete'{% for key in primaryKey %}, '{{ key }}'=>{{ table.name|variabilize }}->{{ key }}{% endfor %}]) ?>">Delete</a>
+        </td>
+    </tr>
+<?php endforeach; ?>
+</table>
+
+
+

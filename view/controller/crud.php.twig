@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{module}}\Controller;
+
+use {{module}}\Model\{{table.name|entityify}};
+use {{module}}\Model\{{table.name|entityify}}Table;
+use {{module}}\Form\{{table.name|entityify}}Form;
+
+use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Db\Adapter\Adapter;
+
+use Laminas\Mvc\Controller\AbstractActionController;
+use Laminas\View\Model\ViewModel;
+
+
+class {{table.name|entityify}}Controller extends AbstractActionController
+{
+	// Add this property:
+	private $table;
+
+	// Add this constructor:
+	public function __construct({{table.name|entityify}}Table $table)
+	{
+		$this->table = $table;
+	}
+
+{%for operation, actions in crud %}
+{%for action, methods in actions %}
+{% set fall = false %}
+{% if     fall and verbe == 'GET'%}
+{% elseif fall and verbe == 'HEAD' %}
+{% elseif fall and verbe == 'POST' %}
+{% elseif fall and verbe == 'PUT' %}
+{% elseif fall and verbe == 'DELETE' %}
+{% elseif fall and verbe == 'CONNECT' %}
+{% elseif fall and verbe == 'OPTIONS' %}
+{% elseif fall and verbe == 'TRACE' %}
+{% elseif fall and verbe == 'PATCH' %}
+{% else %}
+{% include 'controller/crud/' ~ operation ~ '.php.twig' %}
+{% endif %}
+{%endfor%}
+{%endfor%}
+}
+

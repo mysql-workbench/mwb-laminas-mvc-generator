@@ -1,0 +1,61 @@
+<?php
+
+// generate by github.com/topica/automatos-laminas on {{ "now"|date("d/m/Y") }}
+// <root>/module/{{ module }}/view/{{ controller|lower }}/{{ action }}.phtml:
+
+$title = 'Create {{table.name|verbalize}}';
+
+?>
+<div class="p-5 mb-4 bg-light rounded-3">
+  <h1><?=  $this->escapeHtml($title)  ?></h1><?php 
+
+{% for key in primaryKey %}
+$element_{{ key }} = $form->get('{{ key }}');
+{% endfor%}{% for column in table.columns%}{%if column.name in primaryKey %}{%else%}
+$element_{{ column.name }} = $form->get('{{ column.name }}');
+$element_{{ column.name }}->setAttribute('class', 'form-control');
+$element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{table.name}}-{{ column.name }}');
+{%endif%}
+
+{% endfor %}
+
+$element_submit = $form->get('submit');
+$element_submit->setAttribute('class', 'btn btn-primary');
+
+$form->setAttribute('action', $this->url('{{ controller|lower }}', ['action' => 'edit'{%for key in primaryKey %}, '{{ key }}'=>{{table.name|variabilize}}->{{ key }}{%endfor%}]));
+$form->prepare();
+
+echo '  '.$this->form()->openTag($form);
+
+
+
+?>
+{% for column in table.columns %}
+{%if column.name in primaryKey %}
+{%else%}
+{%if column.name in foreignKey %}
+<!-- select foreignKey="{{column.name}}" -->
+{%else%}
+{%endif%}
+  <div class="form-group">
+    <?=  $this->formLabel($element_{{ column.name }}) ?>
+    <?=  $this->formElement($element_{{ column.name }}) ?>
+    <?=  $this->formElementErrors()->render($element_{{ column.name }}, ['class' => 'help-block']) ?>
+  </div>
+{%endif%}
+
+{% endfor %}
+
+{%for key in primaryKey %}
+    <?= $this->formHidden($element_{{key}}) ?>
+{%endfor%}
+
+<?php 
+
+echo $this->formSubmit($element_submit);
+//echo $this->formReset($element_reset);
+//echo $this->formButton($element_cancel);// <a class="btn btn-primary">
+//echo $this->formSubmit($element_back);
+
+echo $this->form()->closeTag();
+?></div>
