@@ -1,0 +1,27 @@
+{
+    "name": "mysql-workbench/mwb-laminas-mvc-generator",
+    "description": "CRUD from MySQL Workbench",
+    "type": "library",
+    "license": "GPL-3.0",
+    "autoload": {
+        "psr-4": {
+            "Mwb\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "SVG Animate",
+            "email": "glash.gnome@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "github",
+            "url": "https://github.com/mysql-workbench/mwb-dom"
+        }
+    ],
+    "require": {
+        "mysql-workbench/mwb-dom": "^1.0.2"
+    }
+}
