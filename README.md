@@ -1,3 +1,7 @@
+# Prerequist
+ - Twig
+ - SQLParser (phpMyAdmin)
+
 # 1st try of writing an MVC CRUD
 
 Controller generation
