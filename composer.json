@@ -15,14 +15,17 @@
             "email": "glash.gnome@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
     "repositories": [
         {
             "type": "github",
             "url": "https://github.com/mysql-workbench/mwb-dom"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/mysql-workbench/mwb-orm"
         }
     ],
     "require": {
-        "mysql-workbench/mwb-dom": "^1.0.0"
+        "mysql-workbench/mwb-orm": "^1.0.0"
     }
 }
