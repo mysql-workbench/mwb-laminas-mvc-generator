@@ -1,6 +1,7 @@
 {
     "name": "mysql-workbench/mwb-laminas-mvc-generator",
     "description": "CRUD from MySQL Workbench",
+    "version": "1.0.0",
     "type": "library",
     "license": "GPL-3.0",
     "autoload": {
@@ -22,6 +23,6 @@
         }
     ],
     "require": {
-        "mysql-workbench/mwb-dom": "^1.0.2"
+        "mysql-workbench/mwb-dom": "^1.0.0"
     }
 }
