@@ -1,20 +1,12 @@
-<!DOCTYPE html
-	PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
-	<meta content="utf-8" http-equiv="encoding" />
-	<meta charset="utf-8" />
-	<title>My Document</title>
-	<link rel="stylesheet" href="styles.css" />
-	<script type="text/javascript" src="script.js" ></script>
-</head>
+<?php
 
-<body>
-	<h1>My Document</h1>
-	<p>Hello World</p>
+require_once __DIR__.'/../vendor/autoload.php';
 
-</body>
-</html>
+use Mwb\LaminasGenerator\UnitGenerator;
+
+
+$filepath = realpath(dirname(__FILE__, 2).'/vendor/mysql-workbench/mwb-dom/data/sakila_full.mwb');
+$generator = new UnitGenerator($filepath);
+$generator->generate(__DIR__.'/../tmp');
+
 

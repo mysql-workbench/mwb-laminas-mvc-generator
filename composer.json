@@ -1,6 +1,12 @@
 {
     "name": "mysql-workbench/mwb-laminas-mvc-generator",
     "description": "CRUD from MySQL Workbench",
+    "keywords": [
+        "MySQL Workbench",
+        "php",
+        "CRUD",
+        "generator"
+    ],
     "version": "1.0.0",
     "type": "library",
     "license": "GPL-3.0",
@@ -26,6 +32,10 @@
         }
     ],
     "require": {
-        "mysql-workbench/mwb-orm": "^1.0.0"
+        "mysql-workbench/mwb-orm": "^1.0.0",
+        "laminas/laminas-filter": "^3.4",
+        "twig/twig": "^3.22",
+        "doctrine/inflector": "^2.1",
+        "phpmyadmin/sql-parser": "^6.0"
     }
 }
