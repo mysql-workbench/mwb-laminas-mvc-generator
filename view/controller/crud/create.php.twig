@@ -20,7 +20,7 @@
 			return $this->redirect()->toRoute('{{module|slugify}}', ['action' => '{{action}}']);// statement list; flashMessage select a statement to add operation manualy
 		}
 {%endif%}
-		$form = new {{table.name|entityify}}Form(False, 'create_{{table.name|slugify}}');
+		$form = new {{entity_name}}Form(False, 'create_{{entity_name|slugify}}');
 		$form->get('submit')->setValue('Add');
 		$form->get('statements_id')->setValue($route_statements_id);// error if POST exist
 
@@ -28,10 +28,10 @@
 			return ['form' => $form];
 		}
 
-		{{table.name|variabilize}} = new {{table.name|entityify}}();
+		{{entity_name|variabilize}} = new {{entity_name}}();
 		//$form->setHydrator(new ClassMethodsHydrator());
-		$form->bind({{table.name|variabilize}});
-		$inputFilter = {{table.name|variabilize}}->getInputFilter(False, True);// hasPrimaryKey=False
+		$form->bind({{entity_name|variabilize}});
+		$inputFilter = {{entity_name|variabilize}}->getInputFilter(False, True);// hasPrimaryKey=False
 		$form->setInputFilter($inputFilter);
 		$form->setData($request->getPost());
 
@@ -39,7 +39,7 @@
 			return ['form' => $form];
 		}
 
-		$this->table->save{{table.name|entityify}}({{table.name|variabilize}});
+		$this->table->save{{entity_name}}({{entity_name|variabilize}});
 		return $this->redirect()->toRoute('{{module|slugify}}');
 	}
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace {{module}}\Controller;
 
-use {{module}}\Model\{{table.name|entityify}};
-use {{module}}\Model\{{table.name|entityify}}Table;
-use {{module}}\Form\{{table.name|entityify}}Form;
+use {{module}}\Model\{{entity_name}};
+use {{module}}\Model\{{entity_name}}Table;
+use {{module}}\Form\{{entity_name}}Form;
 
 use Laminas\Db\TableGateway\TableGateway;
 use Laminas\Db\Adapter\Adapter;
@@ -15,13 +15,13 @@ use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 
 
-class {{table.name|entityify}}Controller extends AbstractActionController
+class {{entity_name}}Controller extends AbstractActionController
 {
 	// Add this property:
 	private $table;
 
 	// Add this constructor:
-	public function __construct({{table.name|entityify}}Table $table)
+	public function __construct({{entity_name}}Table $table)
 	{
 		$this->table = $table;
 	}

@@ -369,28 +369,25 @@ entities:
 
 class UnitGenerator extends BaseGenerator
 {
-	protected $mwbDocument;
+	protected $mwbOrm;
 	protected $pathExport = Null;// .'../build'
 
 	public function __construct($filepath) {
 		parent::__construct();
-		$this->mwbDocument = \Mwb\Document::load($filepath);
+		//$this->mwbDocument = \Mwb\Document::load($filepath);
+		$this->mwbOrm = \Mwb\Orm\Loader::Load($filepath);
 	}
 
-	protected function getphysicalTables() {
-		$tables = [];
+	protected function getEntities() {
+		$entities = [];
 
-		$physicalModel = $this->mwbDocument->doc->documentElement->physicalModels[0];
-		$schemata      = $physicalModel->catalog->schemata[0];
-
-		foreach ($schemata->tables as $table) {
-			if (empty($this->config->whiteTables) || in_array($table->name, $this->config->whiteTables)) {
-echo '---' . PHP_EOL;
-				$tables[] = $table;
+		foreach ($this->mwbOrm->getEntities() as $entity) {
+			if (empty($this->config->whiteTables) || in_array($entity->dbTable->name, $this->config->whiteTables)) {
+				$entities[] = $entity;
 			}
 		}
 
-		return $tables;
+		return $entities;
 	}
 
 	private function findPrimaryKeys($table) {
@@ -430,15 +427,18 @@ echo '---' . PHP_EOL;
 	}
 
 	protected function generateController($moduleName, $controllerName=Null) {
-		foreach ($this->getphysicalTables() as $table) {
+		foreach ($this->getEntities() as $entity) {
 			if (Null==$controllerName) {
-				$controllerName = $this->naming->entityify($table->name);
+				$controllerName = $entity->getName();
 			}
-			$keys = $this->findKeys($table);
+			//$entity->getProperties('PK');
+			//$entity->getProperties('FK & PK');
+			//$entity->getProperties('FK ^ PK');
+			$keys = $this->findKeys($entity->dbTable);
 			$output = $this->twig->render('controller/crud.php.twig', [// $actionCode
 				'module' => $moduleName,
 				'crud' => $this->config->crud,
-				'table' => $table,
+				'entity_name' => $entity->getName(),
 				'primaryKey'        => $keys['primaries'],
 				'primaryForeignKey' => $keys['foreignPrimaries'],
 				'foreignKey'        => $keys['foreigns'],
@@ -448,7 +448,7 @@ echo '---' . PHP_EOL;
 	}
 
 	protected function generateView($moduleName=Null, $actionName='index', $controllerName=Null) {
-		foreach ($this->getphysicalTables() as $table) {
+		foreach ($this->getEntities() as $table) {
 			if (Null==$controllerName) {
 				$controllerName = $this->naming->entityify($table->name);
 			}
