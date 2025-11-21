@@ -7,7 +7,7 @@
         "CRUD",
         "generator"
     ],
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "library",
     "license": "GPL-3.0",
     "autoload": {
@@ -32,7 +32,7 @@
         }
     ],
     "require": {
-        "mysql-workbench/mwb-orm": "^1.0.0",
+        "mysql-workbench/mwb-orm": "^1.0.1",
         "laminas/laminas-filter": "^3.4",
         "twig/twig": "^3.22",
         "doctrine/inflector": "^2.1",
