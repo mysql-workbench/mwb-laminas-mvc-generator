@@ -39,7 +39,7 @@ class {{entity_name}}Controller extends AbstractActionController
 {% elseif fall and verbe == 'TRACE' %}
 {% elseif fall and verbe == 'PATCH' %}
 {% else %}
-{% include 'controller/crud/' ~ operation ~ '.php.twig' %}
+{% include 'src/Controller/actions/' ~ operation ~ '.php.twig' %}
 {% endif %}
 {%endfor%}
 {%endfor%}

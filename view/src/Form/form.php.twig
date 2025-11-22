@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{module}}\Form;
+
+use Laminas\Form\Element\Hidden;
+use Laminas\Form\Element\Submit;
+use Laminas\Form\Element\Text;
+use Laminas\Form\Element\Select;
+use Laminas\Form\Form;
+
+class {{entity.name}}Form extends Form
+{
+    public function __construct($name = '{{entity.name}}')
+    {
+        parent::__construct($name);
+
+{%for column in entity.dbTable.columns %}
+        $this->add([
+            'name' => '{{column.name}}',
+            'type' => {{column|formElementTypefy}},
+            'options' => [
+                'label' => 'label_{{module|slugify}}_{{entity.dbTable.name}}-{{column.name}}',
+            ],
+        ]);
+{%endfor%}
+
+        $this->add([
+            'name' => 'submit',
+            'type' => Submit::class,
+            'attributes' => [
+                'value' => 'Go',
+                'id'    => 'submitbutton',
+            ],
+        ]);
+    }
+}
+

@@ -1,20 +1,20 @@
 <?php
 
 // generate by github.com/topica/automatos-laminas on {{ "now"|date("d/m/Y") }}
-// <root>/module/{{ module }}/view/{{ controller|lower }}/{{ action }}.phtml:
+// <root>/module/{{ module }}/view/{{entity.name|slugify}}/{{ action }}.phtml:
 
-$title = 'Create {{table.name|verbalize}}';
+$title = 'Create {{entity.dbTable.name|verbalize}}';
 
 ?>
 <div class="p-5 mb-4 bg-light rounded-3">
   <h1><?=  $this->escapeHtml($title)  ?></h1><?php 
 
-{% for column in table.columns %}
+{% for column in entity.dbTable.columns %}
 {%if column.name in primaryKey %}
 {%else%}
 $element_{{ column.name }} = $form->get('{{ column.name }}');
 $element_{{ column.name }}->setAttribute('class', 'form-control');
-$element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{table.name}}-{{ column.name }}');
+$element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{entity.dbTable.name}}-{{ column.name }}');
 {%endif%}
 
 {% endfor %}
@@ -22,7 +22,7 @@ $element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{table.nam
 $element_submit = $form->get('submit');
 $element_submit->setAttribute('class', 'btn btn-primary');
 
-$form->setAttribute('action', $this->url('{{ controller|lower }}', ['action' => 'edit'{%for key in primaryKey %}, '{{ key }}'=>{{table.name|variabilize}}->{{ key }}{%endfor%}]));
+$form->setAttribute('action', $this->url('{{entity.name|slugify}}', ['action' => 'edit'{%for key in primaryKey %}, '{{ key }}'=>{{entity.dbTable.name|variabilize}}->{{ key }}{%endfor%}]));
 $form->prepare();
 
 echo '  '.$this->form()->openTag($form);
@@ -30,7 +30,7 @@ echo '  '.$this->form()->openTag($form);
 
 
 ?>
-{% for column in table.columns %}
+{% for column in entity.dbTable.columns %}
 {%if column.name in primaryKey %}
 {%else%}
 {%if column.name in foreignKey %}

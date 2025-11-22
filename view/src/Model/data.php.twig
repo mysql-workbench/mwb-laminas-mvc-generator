@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{module}}\Form;
+
+class {{entity.name}}Data
+{
+{%for column in entity.dbTable.columns %}
+	public {{column|dataDeclare}};
+{%endfor%}
+
+	public function exchangeArray(array $array): void
+	{
+{%for column in entity.dbTable.columns %}
+		$this->{{column.name}} = ! empty($array['{{column.name}}']) ? $array['{{column.name}}'] : null;
+{%endfor%}
+	}
+
+	public function getArrayCopy()
+	{
+		return [
+{%for column in entity.dbTable.columns %}
+			'{{column.name}}' => $this->{{column.name}},
+{%endfor%}
+		];
+	}
+
+}
+

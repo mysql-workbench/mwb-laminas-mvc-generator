@@ -132,6 +132,12 @@ class StandardNaming implements NamingStrategy
 
 /* unit CRUD
  */
+class Crud {
+	const CREATE = 'create';
+	const READ = 'read';
+	const UPDATE = 'update';
+	const DELETE = 'delete';
+}
 
 class ConfigGenerator {
 	public $whiteTables = [
@@ -141,14 +147,14 @@ class ConfigGenerator {
 		//'operation_descriptions',
 		'city',
 	];
+	public $blackTables = [];
 
 	public $crud = [
-		'create' => ['add' => ['POST', 'GET']],
-		'read'   => ['list'=> ['POST'],
-			     'view'=> ['GET']],
-		'update' => ['add' => ['POST', 'GET']],
-		'delete' => ['del' => ['GET'],
-			     'sup' => ['POST']],
+		Crud::CREATE => ['add' => ['POST', 'GET']],
+		Crud::READ   => ['index'=> ['GET'],
+			         'view'=> ['GET']],
+		Crud::UPDATE => ['edit' => ['POST', 'GET']],
+		Crud::DELETE => ['del' => ['GET', 'POST']],
 	];
 }
 
@@ -156,7 +162,7 @@ class BaseGenerator {
 	protected $config;
 	protected NamingStrategy $naming;
 
-	protected $enableExport = False;
+	public $enableExport = False;
 
 	protected $twig;
 	public function __construct() {
@@ -222,6 +228,221 @@ class BaseGenerator {
 			return $string;
 		});
 
+		$formElementTypeFilter = new TwigFilter('formElementTypefy', function($dbColumn) use($naming) {
+			$simpleTypeElements = [
+				'com.mysql.rdbms.mysql.datatype.tinyint'            => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.smallint'           => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.mediumint'          => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.int'                => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.bigint'             => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.float'              => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.real'               => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.double'             => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.decimal'            => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.char'               => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.nchar'              => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.varchar'            => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.nvarchar'           => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.binary'             =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.varbinary'          =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.tinytext'           => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.text'               => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.mediumtext'         => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.longtext'           => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.tinyblob'           =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.blob'               =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.mediumblob'         =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.longblob'           =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.json'               => 'Text::class',
+				'com.mysql.rdbms.mysql.datatype.datetime'           =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.datetime_f'         =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.date'               =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.time'               =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.time_f'             =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.year'               =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.timestamp'          =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.timestamp_f'        =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.geometry'           =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.point'              =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.linestring'         =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.polygon'            =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.geometrycollection' =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.multipoint'         =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.multilinestring'    =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.multipolygon'       =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.bit'                =>               'Text::class',// ?
+				'com.mysql.rdbms.mysql.datatype.enum'               => 'Select::class',
+				'com.mysql.rdbms.mysql.datatype.set'                =>               'Text::class',// ?
+			];
+
+			$userTypeElements = [
+				'MY_DEVISE'                => 'Text::class',
+				//'MY_DEVISE'                => '\\Application\\Filter\\ToDevise',
+			];
+
+			
+			if (isset($dbColumn->userType)) {
+				if (array_key_exists($dbColumn->userType->name, $userTypeElements)) {
+					$elementName = $userTypeElements[$dbColumn->userType->name];
+				} else {
+					$elementName = $simpleTypeElements[$dbColumn->userType->actualType->name];
+				}
+			} elseif (array_key_exists($dbColumn->simpleType->name, $simpleTypeElements)) {
+				$elementName = $simpleTypeElements[$dbColumn->simpleType->name];
+			} else {
+				echo 'Warning : simpleElement "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+			}
+
+			return $elementName;
+		});
+
+
+		$dbColumnDeclareFilter = new TwigFilter('dataDeclare', function($dbColumn) use($naming) {
+			$simpleTypes = [
+				'com.mysql.rdbms.mysql.datatype.tinyint'            => 'int',
+				'com.mysql.rdbms.mysql.datatype.smallint'           => 'int',
+				'com.mysql.rdbms.mysql.datatype.mediumint'          => 'int',
+				'com.mysql.rdbms.mysql.datatype.int'                => 'int',
+				'com.mysql.rdbms.mysql.datatype.bigint'             => 'int',
+				'com.mysql.rdbms.mysql.datatype.float'              => 'float',
+				'com.mysql.rdbms.mysql.datatype.real'               => 'float',
+				'com.mysql.rdbms.mysql.datatype.double'             => 'float',
+				'com.mysql.rdbms.mysql.datatype.decimal'            => 'float',
+				'com.mysql.rdbms.mysql.datatype.char'               => 'string',
+				'com.mysql.rdbms.mysql.datatype.nchar'              => 'string',
+				'com.mysql.rdbms.mysql.datatype.varchar'            => 'string',
+				'com.mysql.rdbms.mysql.datatype.nvarchar'           => 'string',
+				'com.mysql.rdbms.mysql.datatype.binary'             => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.varbinary'          => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.tinytext'           => 'string',
+				'com.mysql.rdbms.mysql.datatype.text'               => 'string',
+				'com.mysql.rdbms.mysql.datatype.mediumtext'         => 'string',
+				'com.mysql.rdbms.mysql.datatype.longtext'           => 'string',
+				'com.mysql.rdbms.mysql.datatype.tinyblob'           => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.blob'               => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.mediumblob'         => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.longblob'           => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.json'               => 'string',
+				'com.mysql.rdbms.mysql.datatype.datetime'           => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.datetime_f'         => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.date'               => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.time'               => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.time_f'             => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.year'               => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.timestamp'          => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.timestamp_f'        => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.geometry'           => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.point'              => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.linestring'         => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.polygon'            => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.geometrycollection' => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.multipoint'         => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.multilinestring'    => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.multipolygon'       => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.bit'                => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.enum'               => 'mixed',// enum
+				'com.mysql.rdbms.mysql.datatype.set'                => 'mixed',
+			];
+
+			$propertyDecl = '';
+			if (isset($dbColumn->userType)) {
+				$type = $simpleTypes[$dbColumn->userType->actualType->name];
+				//$commentType = '// '.$type.' => ' . $dbColumn->userType->name . '<'.$dbColumn->userType->sqlDefinition.'>('.$dbColumn->userType->flags.') so use specifique Filter';
+			} else if ( array_key_exists($dbColumn->simpleType->name, $simpleTypes) ) {
+				$type = $simpleTypes[$dbColumn->simpleType->name];
+				//$commentType = '// ' . $type;
+			} else {
+				echo 'Warning : simpleType "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+			}
+
+
+			$propertyDecl = 'public '.$type.'? $'.$dbColumn->name.' = Null';
+			return $propertyDecl;
+		});
+
+		$dbColumnAsFilter = new TwigFilter('columnsAsFilter', function($dbColumns) use($naming) {
+			// Default : Injection protect
+			$simpleTypeFilters = [
+				'com.mysql.rdbms.mysql.datatype.tinyint'            => 'ToInt::class',
+				'com.mysql.rdbms.mysql.datatype.smallint'           => 'ToInt::class',
+				'com.mysql.rdbms.mysql.datatype.mediumint'          => 'ToInt::class',
+				'com.mysql.rdbms.mysql.datatype.int'                => 'ToInt::class',
+				'com.mysql.rdbms.mysql.datatype.bigint'             => 'ToInt::class',
+				'com.mysql.rdbms.mysql.datatype.float'              => 'ToFloat::class',
+				'com.mysql.rdbms.mysql.datatype.real'               => 'ToFloat::class',
+				'com.mysql.rdbms.mysql.datatype.double'             => 'ToFloat::class',
+				'com.mysql.rdbms.mysql.datatype.decimal'            => 'ToFloat::class',
+				'com.mysql.rdbms.mysql.datatype.char'               => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.nchar'              => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.varchar'            => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.nvarchar'           => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.binary'             => Null,
+				'com.mysql.rdbms.mysql.datatype.varbinary'          => Null,
+				'com.mysql.rdbms.mysql.datatype.tinytext'           => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.text'               => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.mediumtext'         => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.longtext'           => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.tinyblob'           => Null,
+				'com.mysql.rdbms.mysql.datatype.blob'               => Null,
+				'com.mysql.rdbms.mysql.datatype.mediumblob'         => Null,
+				'com.mysql.rdbms.mysql.datatype.longblob'           => Null,
+				'com.mysql.rdbms.mysql.datatype.json'               => 'ToString::class',
+				'com.mysql.rdbms.mysql.datatype.datetime'           => Null,
+				'com.mysql.rdbms.mysql.datatype.datetime_f'         => Null,
+				'com.mysql.rdbms.mysql.datatype.date'               => Null,
+				'com.mysql.rdbms.mysql.datatype.time'               => Null,
+				'com.mysql.rdbms.mysql.datatype.time_f'             => Null,
+				'com.mysql.rdbms.mysql.datatype.year'               => Null,
+				'com.mysql.rdbms.mysql.datatype.timestamp'          => Null,
+				'com.mysql.rdbms.mysql.datatype.timestamp_f'        => Null,
+				'com.mysql.rdbms.mysql.datatype.geometry'           => Null,
+				'com.mysql.rdbms.mysql.datatype.point'              => Null,
+				'com.mysql.rdbms.mysql.datatype.linestring'         => Null,
+				'com.mysql.rdbms.mysql.datatype.polygon'            => Null,
+				'com.mysql.rdbms.mysql.datatype.geometrycollection' => Null,
+				'com.mysql.rdbms.mysql.datatype.multipoint'         => Null,
+				'com.mysql.rdbms.mysql.datatype.multilinestring'    => Null,
+				'com.mysql.rdbms.mysql.datatype.multipolygon'       => Null,
+				'com.mysql.rdbms.mysql.datatype.bit'                => Null,
+				'com.mysql.rdbms.mysql.datatype.enum'               => Null,// enum
+				'com.mysql.rdbms.mysql.datatype.set'                => Null,
+			];
+
+			// Domain : use FilterChain
+			$userTypeFilters = [
+				'MY_DEVISE'                => '\\Application\\Filter\\ToDevise',
+
+			];
+
+
+			$columnsFilters = [];
+			foreach ($dbColumns as $dbColumn) {
+				$columnsFilters[$dbColumn->name] = [];
+				$filterName = Null;
+				$commentType = '';
+				if (isset($dbColumn->userType)) {
+					if ( array_key_exists($dbColumn->userType->name, $userTypeFilters) ) {
+						$filterName = $userTypeFilters[$dbColumn->userType->name].'::class';
+					} else {
+						$filterName = $simpleTypeFilters[$dbColumn->userType->actualType->name];
+					}
+					$commentType = ' // ?';
+				} else if ( array_key_exists($dbColumn->simpleType->name, $simpleTypeFilters) ) {
+					$filterName = $simpleTypeFilters[$dbColumn->simpleType->name];
+					$commentType = '// ' . $filterName;
+				} else {
+					echo 'Warning : simpleType "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+					// 'ToNull::class'
+				}
+				if ($filterName) 
+					$columnsFilters[$dbColumn->name][] = $filterName;
+
+			}
+
+			return $columnsFilters;
+		});
+
+
 
 
 		//$this->twig->addFilter($snake_caseFilter);
@@ -230,6 +451,10 @@ class BaseGenerator {
 		$this->twig->addFilter($entityfyFilter);
 		$this->twig->addFilter($variabilizeFilter);
 		$this->twig->addFilter($verbalizeFilter);// Humane readable, Humanize ?
+		$this->twig->addFilter($formElementTypeFilter);
+		$this->twig->addFilter($dbColumnDeclareFilter);
+		$this->twig->addFilter($dbColumnAsFilter);
+
 		// variabilize
 
 		// Configure it:
@@ -426,69 +651,184 @@ class UnitGenerator extends BaseGenerator
 		return ['primaries'=>$primaryKeys, 'foreignPrimaries'=>$foreignPrimaryKeys, 'foreigns'=>$foreignKeys];
 	}
 
-	protected function generateController($moduleName, $controllerName=Null) {
-		foreach ($this->getEntities() as $entity) {
-			if (Null==$controllerName) {
-				$controllerName = $entity->getName();
-			}
-			//$entity->getProperties('PK');
-			//$entity->getProperties('FK & PK');
-			//$entity->getProperties('FK ^ PK');
-			$keys = $this->findKeys($entity->dbTable);
-			$output = $this->twig->render('controller/crud.php.twig', [// $actionCode
-				'module' => $moduleName,
-				'crud' => $this->config->crud,
-				'entity_name' => $entity->getName(),
-				'primaryKey'        => $keys['primaries'],
-				'primaryForeignKey' => $keys['foreignPrimaries'],
-				'foreignKey'        => $keys['foreigns'],
-			]);
+	protected function generateController($moduleName, $entity) {
+		$path = 'module/Application/src/Controller';
+		`mkdir -p $this->pathExport/$path`;
+
+		$columnsPK = $entity->getPKColumns();
+		$columnsFK = $entity->getFKColumns();
+		$foreignPrimaries = array_intersect_key($columnsFK, $columnsPK);
+		$output = $this->twig->render('src/Controller/crud.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'crud' => $this->config->crud,
+			'entity_name' => $entity->getName(),
+			'primaryKey'        => $columnsPK,
+			'primaryForeignKey' => $foreignPrimaries,
+			'foreignKey'        => $columnsFK,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'Controller.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
 			echo $output . PHP_EOL;
 		}
 	}
 
-	protected function generateView($moduleName=Null, $actionName='index', $controllerName=Null) {
-		foreach ($this->getEntities() as $table) {
-			if (Null==$controllerName) {
-				$controllerName = $this->naming->entityify($table->name);
-			}
-			
-			// array reverse $this->config->mapActions = ['index' => 'list',...];
-			// $viewName = $reverse[$actionName]
+	/*
+	public $crud = [
+		'create' => ['add' => ['POST', 'GET']],
+		'read'   => ['index'=> ['POST'],
+			     'view'=> ['GET']],
+		'update' => ['edit' => ['POST', 'GET']],
+		'delete' => ['del' => ['GET', 'POST']],
+	];
+	*/
+	protected function generateView($moduleName, $entity, $crudName) {
+		$filter = new CamelCaseToDash();
+		$EntityName = $entity->name;
+		$Entity_Name = $filter->filter($EntityName);
+		$entity_name = strtolower($Entity_Name);
+		$path = 'module/'.$moduleName.'/view/'.$entity_name;
+		`mkdir -p $this->pathExport/$path`;
 
-			$keys = $this->findKeys($table);
-			$output = $this->twig->render('view/crud/update.php.twig', [// $actionCode
-				'module' => $moduleName,
-				'controller' => $controllerName,
-				'action' => $actionName,
-				'table' => $table,
-				'primaryKey'        => $keys['primaries'],
-				'primaryForeignKey' => $keys['foreignPrimaries'],
-				'foreignKey'        => $keys['foreigns'],
+		foreach ($this->config->crud[$crudName] as $actionName=>$methods) {
+			//if (!in_array($crudNames, [Crud::CREATE, Crud::UPDATE])) continue;
+			//if (!in_array($actionName, ['add', 'edit'])) continue;
+
+			$output = $this->twig->render('view/application/controller/'.$crudName.'.php.twig', [// $actionName
+				'module'      => $moduleName,
+				'entity'      => $entity,
+				'action'      => $actionName,
+				//'primaryKey'        => $entity->dbColumnsPK,
+				//'primaryForeignKey' => array_intersect_key($entity->dbColumnsFK, $entity->dbColumnsPK),
+				//'foreignKey'        => $entity->dbColumnsFK,
 			]);
+			if ($this->enableExport) {
+				$filename = $actionName . '.tpl.php';
+				file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			} else {
+				echo $output . PHP_EOL;
+			}
+		}
+
+	}
+
+	protected function generateForm($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Form';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Form/form.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'Form.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
 			echo $output . PHP_EOL;
 		}
 	}
 
-	public function generate($path) {
-		$this->pathExport = realpath($path);
+	protected function generateObject($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Model';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Model/object.php.twig', [
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . '.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
+	protected function generateData($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Model';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Model/data.php.twig', [
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'Data.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
+	protected function generateTable($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Model';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Model/table.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'entity_name' => $entity->getName(),
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'Table.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
+	protected function generateFilter($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Filter';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Filter/filter.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'Filter.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
+	protected function generateTranslate($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/language';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('language/translatable.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . '.en_US.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
+	public function generate($path, $enableExport=False) {
+		$this->pathExport = $path;
+		$this->enableExport = $enableExport;
 		$moduleName = 'Application';
 
-		$this->generateController($moduleName);
-		foreach ($this->config->crud as $verbe=>$actions) {
-
-			/*
-			//'POST'=>['create'=>'add', 'update'=>'edit', 'delete'=>'delete'],
-			if ('POST'==$verbe) {
-				foreach ($actions as $actionCode=>$actionName) {
-					if ('update'==$actionCode) {
-						$this->generateView($moduleName, $actionName);
-					}
-				}
+		foreach ($this->getEntities() as $entity) {
+			$this->generateController($moduleName, $entity);
+			$this->generateForm($moduleName, $entity);
+			$this->generateObject($moduleName, $entity);
+			$this->generateData($moduleName, $entity);
+			$this->generateTable($moduleName, $entity);
+			$this->generateFilter($moduleName, $entity);
+			$this->generateTranslate($moduleName, $entity);
+			//$this->generateHydrator($moduleName, $entity);
+			//$this->generateValidator($moduleName, $entity);
+			foreach ($this->config->crud as $crudName=>$actions) {
+				$this->generateView($moduleName, $entity, $crudName);
 			}
-			*/
 		}
 	}
 }
-
 

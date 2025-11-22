@@ -1,0 +1,13 @@
+{# <?php #}
+
+	/* INDEX[{%for verb in methods %}{%if not loop.first%}|{%endif%}{{verb}}{%endfor%}] */
+	public function {{action}}Action()
+	{
+		return new ViewModel([
+{%for fk, table in foreignKey %}
+			//'{{fk}}' => $route_{{fk}},
+{%endfor%}
+			'operations' => $this->table->fetchAll(),
+		]);
+	}
+

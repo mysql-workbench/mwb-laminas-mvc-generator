@@ -1,9 +1,9 @@
 <?php
 
-// generate by github.com/topica/automatos-laminas on {{ "now"|date("d/m/Y") }}
-// <root>/module/{{ module }}/view/{{ controller|lower }}/{{ action }}.phtml:
+// generate by github.com/mysql-workbench/mwb-laminas-mv-generator on {{ "now"|date("d/m/Y") }}
+// <root>/module/{{ module }}/view/{{entity.name|slugify}}/{{ action }}.phtml:
 
-$title = 'Create {{table.name|verbalize}}';
+$title = 'Create {{entity.name|verbalize}}';
 
 ?>
 <div class="p-5 mb-4 bg-light rounded-3">
@@ -11,10 +11,10 @@ $title = 'Create {{table.name|verbalize}}';
 
 {% for key in primaryKey %}
 $element_{{ key }} = $form->get('{{ key }}');
-{% endfor%}{% for column in table.columns%}{%if column.name in primaryKey %}{%else%}
-$element_{{ column.name }} = $form->get('{{ column.name }}');
-$element_{{ column.name }}->setAttribute('class', 'form-control');
-$element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{table.name}}-{{ column.name }}');
+{% endfor%}{% for property in entity.properties%}{%if property.dbColumn.name in primaryKey %}{%else%}
+$element_{{ property.dbColumn.name }} = $form->get('{{ property.dbColumn.name }}');
+$element_{{ property.dbColumn.name }}->setAttribute('class', 'form-control');
+$element_{{ property.dbColumn.name }}->setAttribute('placeholder', 'placeholder_{{entity.name}}-{{ property.dbColumn.name }}');
 {%endif%}
 
 {% endfor %}
@@ -22,7 +22,7 @@ $element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{table.nam
 $element_submit = $form->get('submit');
 $element_submit->setAttribute('class', 'btn btn-primary');
 
-$form->setAttribute('action', $this->url('{{ controller|lower }}', ['action' => 'edit'{%for key in primaryKey %}, '{{ key }}'=>{{table.name|variabilize}}->{{ key }}{%endfor%}]));
+$form->setAttribute('action', $this->url('{{ controller|lower }}', ['action' => 'edit'{%for key, table in primaryKey %}, '{{ key }}'=>{{entity.name|variabilize}}->{{ key }}{%endfor%}]));
 $form->prepare();
 
 echo '  '.$this->form()->openTag($form);
@@ -30,7 +30,7 @@ echo '  '.$this->form()->openTag($form);
 
 
 ?>
-{% for column in table.columns %}
+{% for column in entity.dbTable.columns %}
 {%if column.name in primaryKey %}
 {%else%}
 {%if column.name in foreignKey %}

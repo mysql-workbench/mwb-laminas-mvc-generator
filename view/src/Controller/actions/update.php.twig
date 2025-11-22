@@ -1,0 +1,51 @@
+{# <?php #}
+
+	/* UPDATE[{%for verb in methods %}{%if not loop.first%}|{%endif%}{{verb}}{%endfor%}] */
+	public function {{action}}Action()
+	{
+		$request = $this->getRequest();
+{% set owner_mandatory = false %}
+{% set op = '' %}
+{% set conditions = '' %}
+{%for key, value in primaryKey %}
+		$route_{{ key }} = (int) $this->params()->fromRoute('{{ key }}', 0);
+		$mandatory_{{key}} = (int) $this->params()->fromRoute('{{key}}', 0);
+	{% set conditions = conditions ~ op ~ '$route_' ~ key %}
+	{% set op = ' && ' %}
+{%endfor%}
+
+{%if owner_mandatory %}
+{%endif%}
+		if (! ({{conditions}}) ) {
+			return $this->redirect()->toRoute('{{module|slugify}}', ['action' => '{{action}}']);// statement list; flashMessage select a statement to add operation manualy
+		}
+
+		try {
+			${{entity_name|slugify}} = $this->table->get{{entity_name}}([{%for pk, table in primaryKey %}{%if not loop.first%}, {%endif%} '{{pk}}' => $route_{{pk}}{%endfor%}]);
+		} catch (\Exception $e) {
+			return $this->redirect()->toRoute('<?php echo $entityCode ?>', ['action' => 'list']);
+		}
+
+		$form = new {{entity_name}}Form(False, 'create_{{entity_name|slugify}}');
+		$form->get('submit')->setValue('Add');
+		//$form->get('statements_id')->setValue($route_statements_id);// error if POST exist
+
+		if (! $request->isPost()) {
+			return ['form' => $form];
+		}
+
+		{{entity_name|variabilize}} = new {{entity_name}}();
+		//$form->setHydrator(new ClassMethodsHydrator());
+		$form->bind({{entity_name|variabilize}});
+		$inputFilter = {{entity_name|variabilize}}->getInputFilter(False, True);// hasPrimaryKey=False
+		$form->setInputFilter($inputFilter);
+		$form->setData($request->getPost());
+
+		if (! $form->isValid()) {
+			return ['form' => $form];
+		}
+
+		$this->table->save{{entity_name}}({{entity_name|variabilize}});
+		return $this->redirect()->toRoute('{{entity_name|slugify}}');
+	}
+

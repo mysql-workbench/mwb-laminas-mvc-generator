@@ -1,9 +1,9 @@
-
+{# <?php #}
 	/* CREATE[{%for verb in methods %}{%if not loop.first%}|{%endif%}{{verb}}{%endfor%}] */
 	public function {{action}}Action()
 	{
 		$request = $this->getRequest();
-{%for key in primaryForeignKey %}
+{%for key, value in primaryForeignKey %}
 {{key}}
 {%endfor%}
 {% set owner_mandatory = false %}
@@ -22,7 +22,7 @@
 {%endif%}
 		$form = new {{entity_name}}Form(False, 'create_{{entity_name|slugify}}');
 		$form->get('submit')->setValue('Add');
-		$form->get('statements_id')->setValue($route_statements_id);// error if POST exist
+		//$form->get('statements_id')->setValue($route_statements_id);// error if POST exist
 
 		if (! $request->isPost()) {
 			return ['form' => $form];
@@ -40,6 +40,6 @@
 		}
 
 		$this->table->save{{entity_name}}({{entity_name|variabilize}});
-		return $this->redirect()->toRoute('{{module|slugify}}');
+		return $this->redirect()->toRoute('{{entity_name|slugify}}');
 	}
 

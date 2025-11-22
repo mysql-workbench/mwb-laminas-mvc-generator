@@ -1,0 +1,64 @@
+<?php
+
+
+declare(strict_types=1);
+
+namespace {{module}}\Filter;
+
+// Add the following import statements:
+use DomainException;
+
+use Laminas\Filter\ToString;
+use Laminas\Filter\StringTrim;
+use Laminas\Filter\StripTags;
+use Laminas\Filter\ToInt;
+use Laminas\Filter\ToFloat;
+use Laminas\Filter\FilterChain;
+
+use Laminas\InputFilter\InputFilter;
+use Laminas\InputFilter\InputFilterAwareInterface;
+use Laminas\InputFilter\InputFilterInterface;
+use Laminas\Validator\StringLength;
+
+class {{entity.name}}Filter extends \{{module}}\Model\{{entity.name}}Data implements InputFilterAwareInterface
+{
+	private $inputFilter;
+
+	public function setInputFilter(InputFilterInterface $inputFilter)
+	{
+		throw new DomainException(sprintf(
+			'%s does not allow injection of an alternate input filter',
+			__CLASS__
+		));
+	}
+
+
+	public function getInputFilter()
+	{
+		if ($this->inputFilter) {
+			return $this->inputFilter;
+		}
+
+		$inputFilter = new InputFilter();
+
+{%for column in entity.dbTable.columns %}
+		$this->{{column.name}} = ! empty($array['{{column.name}}']) ? $array['{{column.name}}'] : null;
+
+
+		$inputFilter->add([
+			'name' => '.{{column.name}}',
+			'required' => {%if column.isNotNull %}true{%else%}false{%endif%},
+			'filters' => [
+{%for filters in entity.dbTable.columns|columnsAsFilter[column.name] %}
+				['name' => '{{filters}}'],
+{%endfor%}
+			],
+		]);
+{%endfor%}
+
+		$this->inputFilter = $inputFilter;
+		return $this->inputFilter;
+	}
+
+}
+

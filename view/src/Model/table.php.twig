@@ -1,0 +1,70 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{module}}\Form;
+
+use RuntimeException;
+use Laminas\Db\TableGateway\TableGatewayInterface;
+
+
+class {{entity.name}}Table
+{
+	private $tableGateway;
+
+	public function __construct(TableGatewayInterface $tableGateway)
+	{
+		$this->tableGateway = $tableGateway;
+	}
+
+	public function fetchAll()
+	{
+		return $this->tableGateway->select();
+	}
+
+	public function get{{entity.name}}({%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}${{pk}}{%endfor%})
+	{
+		$rowset = $this->tableGateway->select([{%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}'{{pk}}' => ${{pk}}{%endfor%}]);
+		$row = $rowset->current();
+		if (! $row) {
+			throw new RuntimeException(sprintf(
+				'Could not find row with identifier {%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}%s{%endfor%}',
+				{%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}${{pk}}{%endfor%}
+
+			));
+		}
+
+		return $row;
+	}
+
+	public function save{{entity.name}}({{entity.name}} {{entity.name|variabilize}})
+	{
+		$data = [
+			{%for pk, column in entity.dbTable.columns %}{%if not loop.first%}, {%endif%}'{{column.name}}' => {{entity.name|variabilize}}->{{column.name}}{%endfor%}
+
+		];
+
+		if ({%for pk, value in entity.dbPKColumns %}{%if not loop.first%} || {%endif%}0 == {{entity.name|variabilize}}->{{pk}}{%endfor%}) {
+			$this->tableGateway->insert($data);
+			return;
+		}
+
+		try {
+			$this->get{{entity.name}}({%for pk, value in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}{{entity.name|variabilize}}->{{pk}}{%endfor%});
+		} catch (RuntimeException $e) {
+			throw new RuntimeException(sprintf(
+				'Cannot update {{entity.name}} with identifier {%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}%s{%endfor%}; does not exist',
+				{%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}${{pk}}{%endfor%}
+
+			));
+		}
+
+		$this->tableGateway->update($data, [{%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}'{{pk}}' => {{entity.name|variabilize}}->{{pk}}{%endfor%}]);
+	}
+
+	public function delete{{entity.name}}({%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}${{pk}}{%endfor%})
+	{
+		$this->tableGateway->delete([{%for pk, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}'{{pk}}' => (int) {{entity.name|variabilize}}->{{pk}}{%endfor%}]);
+	}
+}
+

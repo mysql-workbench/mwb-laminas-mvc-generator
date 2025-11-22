@@ -1,0 +1,44 @@
+{# <?php #}
+
+	/* DELETE[{%for verb in methods %}{%if not loop.first%}|{%endif%}{{verb}}{%endfor%}] */
+	public function {{action}}Action()
+	{
+		$request = $this->getRequest();
+{% set owner_mandatory = false %}
+{% set op = '' %}
+{% set conditions = '' %}
+{%for key, value in primaryKey %}
+		$route_{{ key }} = (int) $this->params()->fromRoute('{{ key }}', 0);
+		$mandatory_{{key}} = (int) $this->params()->fromRoute('{{key}}', 0);
+	{% set conditions = conditions ~ op ~ '$route_' ~ key %}
+	{% set op = ' && ' %}
+{%endfor%}
+
+{%if owner_mandatory %}
+{%endif%}
+		if (! ({{conditions}}) ) {
+			return $this->redirect()->toRoute('{{entity_name|slugify}}');
+		}
+
+		if ($request->isPost()) {
+			$del = $request->getPost('del', 'No');
+
+			if ($del == 'Yes') {
+{%for pk, table in primaryKey %}
+				$post_{{pk}} = (int) $request->getPost('{{pk}}');
+{%endfor%}
+				$this->table->delete{{entity_name}}({%for pk, table in primaryKey %}{%if not loop.first%}, {%endif%}$post_{{pk}}{%endfor%}));
+			}
+
+			// Redirect to list of albums
+			return $this->redirect()->toRoute('{{entity_name}}');
+		}
+
+		return [
+{%for pk, table in primaryKey %}
+			'{{pk}}' => $route_{{pk}},
+{%endfor%}
+			'{{entity_name|slugify}}' => $this->table->get{{entity_name}}({%for pk, table in primaryKey %}{%if not loop.first%}, {%endif%}$route_{{pk}}{%endfor%}),
+		];
+	}
+

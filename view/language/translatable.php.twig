@@ -1,0 +1,8 @@
+<?php
+
+return [
+{%for column in entity.dbTable.columns %}
+	'{{column.name}}' => 'label_{{module}}-{{entity.name}}-{{column.name|verbalize(false, true)}}',
+{%endfor%}
+];
+
