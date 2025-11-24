@@ -3,43 +3,45 @@
 	public function {{action}}Action()
 	{
 		$request = $this->getRequest();
-{%for key, value in primaryForeignKey %}
-{{key}}
-{%endfor%}
-{% set owner_mandatory = false %}
-{% set op = '' %}
-{% set conditions = '' %}
-{%for key in primaryForeignKey %}
-		$mandatory_{{key}} = (int) $this->params()->fromRoute('{{key}}', 0);
-{% set conditions = conditions ~ op ~ '$route_' ~ key %}
-{% set op = ' && ' %}
-{%endfor%}
 
-{%if owner_mandatory %}
-		if (! ({{conditions}}) ) {
-			return $this->redirect()->toRoute('{{module|slugify}}', ['action' => '{{action}}']);// statement list; flashMessage select a statement to add operation manualy
-		}
-{%endif%}
-		$form = new {{entity_name}}Form(False, 'create_{{entity_name|slugify}}');
+		$form = new {{entity.name}}Form(False, 'create_{{action}}');
 		$form->get('submit')->setValue('Add');
-		//$form->get('statements_id')->setValue($route_statements_id);// error if POST exist
 
-		if (! $request->isPost()) {
+		if ($request->isPost()) {
+			{{entity.name|variabilize}} = new {{entity.name}}();
+			//$form->setHydrator(new ClassMethodsHydrator());
+			$form->bind({{entity.name|variabilize}});
+			$inputFilter = {{entity.name|variabilize}}->getInputFilter(False, False);// hasPrimaryKey=False
+			$form->setInputFilter($inputFilter);
+			$form->setData($request->getPost());
+
+			if ($form->isValid()) {
+				try {
+					// assert $_POST['city_id'] == $_GET['city_id']
+					//$this->table->saveCity($city);
+					$table = $this->getTable();
+					$data = {{entity.name|variabilize}}->getArrayCopy();
+					unset($data['city_id']);
+					{{entity.name|variabilize}}Rowset = $table->insert($data);
+					return $this->redirect()->toRoute('application', ['controller' => '{{entity.name|slugify}}', 'action' => '{{action}}', 'id'=>$table->getLastInsertValue()]);
+
+				} catch (\Exception $e) {
+					return ['form' => $form];
+					//return $this->redirect()->toRoute('application', ['controller' => 'index', 'action' => 'index']);
+				}
+			} else {
+				return ['form' => $form];
+			}
+		//} else if ($request->isGet()) {
+		//} else if ($request->isPut()) {
+		//} else if ($request->isDelete()) {
+		} else {
+			//$city_id = (int) $this->params()->fromRoute('id', 0);
+			//$country_id = (int) $this->params()->fromRoute('id_parent', 0);
+
+			//$form->get('city_id')->setValue($city_id);
+			//$form->get('country_id')->setValue($country_id);// When ForeignKey is Mandatory (use parent to create child)
 			return ['form' => $form];
 		}
-
-		{{entity_name|variabilize}} = new {{entity_name}}();
-		//$form->setHydrator(new ClassMethodsHydrator());
-		$form->bind({{entity_name|variabilize}});
-		$inputFilter = {{entity_name|variabilize}}->getInputFilter(False, True);// hasPrimaryKey=False
-		$form->setInputFilter($inputFilter);
-		$form->setData($request->getPost());
-
-		if (! $form->isValid()) {
-			return ['form' => $form];
-		}
-
-		$this->table->save{{entity_name}}({{entity_name|variabilize}});
-		return $this->redirect()->toRoute('{{entity_name|slugify}}');
 	}
 

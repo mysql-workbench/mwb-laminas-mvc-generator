@@ -111,7 +111,6 @@ class StandardNaming implements NamingStrategy
 	}
 
 	public function entityify($name_code, $pluralize=False) {
-
 		$names = explode('_', $name_code);
 		$last = array_pop($names);
 		$parts = [];
@@ -195,13 +194,13 @@ class BaseGenerator {
 			$string = $filter->filter($string);
 			return $string;
 		});
-		$variabilizeFilter = new TwigFilter('variabilize', function($string, $pluralize=False) use($naming) {
+		$variabilizeFilter = new TwigFilter('variabilize', function($string, $pluralize=False, $preffix='$') use($naming) {
 			$string = $naming->entityify($string, $pluralize);
 			
 			$filter = new UnderscoreToCamelCase($string); // => 'operationDescription'
 			$string = $filter->filter($string);
 			$string = lcfirst($string);
-			return '$'.$string;
+			return $preffix.$string;
 		});
 		$slugifyFilter = new TwigFilter('slugify', function($string, $pluralize=False) use($naming) {
 			$string = $naming->entityify($string, $pluralize);
@@ -356,7 +355,7 @@ class BaseGenerator {
 			}
 
 
-			$propertyDecl = 'public '.$type.'? $'.$dbColumn->name.' = Null';
+			$propertyDecl = 'public ?'.$type.' $'.$dbColumn->name.' = Null';
 			return $propertyDecl;
 		});
 
@@ -652,19 +651,16 @@ class UnitGenerator extends BaseGenerator
 	}
 
 	protected function generateController($moduleName, $entity) {
-		$path = 'module/Application/src/Controller';
+		$path = 'module/'.$moduleName.'/src/Controller';
 		`mkdir -p $this->pathExport/$path`;
 
 		$columnsPK = $entity->getPKColumns();
 		$columnsFK = $entity->getFKColumns();
 		$foreignPrimaries = array_intersect_key($columnsFK, $columnsPK);
 		$output = $this->twig->render('src/Controller/crud.php.twig', [// $actionCode
-			'module' => $moduleName,
 			'crud' => $this->config->crud,
-			'entity_name' => $entity->getName(),
-			'primaryKey'        => $columnsPK,
-			'primaryForeignKey' => $foreignPrimaries,
-			'foreignKey'        => $columnsFK,
+			'module' => $moduleName,
+			'entity' => $entity,
 		]);
 		if ($this->enableExport) {
 			$filename = $entity->name . 'Controller.php';
@@ -704,7 +700,7 @@ class UnitGenerator extends BaseGenerator
 				//'foreignKey'        => $entity->dbColumnsFK,
 			]);
 			if ($this->enableExport) {
-				$filename = $actionName . '.tpl.php';
+				$filename = $actionName . '.phtml';
 				file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
 			} else {
 				echo $output . PHP_EOL;

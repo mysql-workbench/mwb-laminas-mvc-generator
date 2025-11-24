@@ -2,32 +2,32 @@
 {# Simple comment #}
 
 // generate by github.com/topica/automatos-laminas on {{ "now"|date("d/m/Y") }}
-// <root>/module/{{ module }}/view/{{ controller|lower }}/{{ action }}.phtml:
+// <root>/module/{{module|slugify}}/view/{{entity.name|slugify}}/{{ action }}.phtml:
 
 
-$title = 'My {{table.name|verbalize(true)}}';
+$title = 'My {{entity.name|verbalize}}';
 //$this->headTitle($title);
 ?><h1><?= $this->escapeHtml($title) ?></h1>
 <p>
-    <a href="<?= $this->url('{{ controller|lower }}', ['action' => '{{ action }}']) ?>">Add new {{table.name|verbalize(false, true)}}</a>
+    <a href="<?= $this->url('{{module|slugify}}', ['controller' => '{{entity.name|slugify}}', 'action' => 'add', 'id' => 0, 'id_parent' => 0]) ?>">Add new {{entity.name|verbalize(false, true)}}</a>
 </p>
 
 <table class="table">
     <tr>
-{% for column in table.columns %}
-        <th><?= $this->translate('thead_{{table.name}}-{{ column.name }}'); ?></th>
+{% for column in entity.dbTable.columns %}
+        <th><?= $this->translate('thead_{{entity.name}}-{{ column.name }}'); ?></th>
 {% endfor %}
         <th>&nbsp;</th>
     </tr>
 
-<?php foreach ( {{ table.name|variabilize(true) }} as {{ table.name|variabilize }}) : ?>    <tr>
-{% for column in table.columns %}
-        <td><?= $this->escapeHtml({{ table.name|variabilize }}->{{ column.name }}) ?></td>
+<?php foreach ( {{ entity.name|variabilize(true) }} as {{ entity.name|variabilize }}) : ?>    <tr>
+{% for column in entity.dbTable.columns %}
+        <td><?= $this->escapeHtml({{ entity.name|variabilize }}->{{ column.name }}) ?></td>
 {% endfor %}
 
         <td>
-            <a href="<?= $this->url('operation', ['action' => 'edit'{% for key in primaryKey %}, '{{ key }}'=>{{ table.name|variabilize }}->{{ key }}{% endfor %}]) ?>">Edit</a>
-            <a href="<?= $this->url('operation', ['action' => 'delete'{% for key in primaryKey %}, '{{ key }}'=>{{ table.name|variabilize }}->{{ key }}{% endfor %}]) ?>">Delete</a>
+            <a href="<?= $this->url('{{module|slugify}}', ['controller' => '{{entity.name|slugify}}', 'action' => 'edit'{% for key, table in entity.dbPKColumns %}, 'id' => {{ entity.name|variabilize }}->{{ key }}{% endfor %}]) ?>">Edit</a>
+            <a href="<?= $this->url('{{module|slugify}}', ['controller' => '{{entity.name|slugify}}', 'action' => 'del'{% for key, table in entity.dbPKColumns %}, 'id' => {{ entity.name|variabilize }}->{{ key }}{% endfor %}]) ?>">Delete</a>
         </td>
     </tr>
 <?php endforeach; ?>

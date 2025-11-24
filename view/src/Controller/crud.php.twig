@@ -4,26 +4,29 @@ declare(strict_types=1);
 
 namespace {{module}}\Controller;
 
-use {{module}}\Model\{{entity_name}};
-use {{module}}\Model\{{entity_name}}Table;
-use {{module}}\Form\{{entity_name}}Form;
+use {{module}}\Model\{{entity.name}};
+use {{module}}\Model\{{entity.name}}Table;
+use {{module}}\Form\{{entity.name}}Form;
 
-use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Db\Adapter\AdapterInterface;
 use Laminas\Db\Adapter\Adapter;
+use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Db\ResultSet\ResultSet;
 
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 
 
-class {{entity_name}}Controller extends AbstractActionController
+class {{entity.name}}Controller extends AbstractActionController
 {
-	// Add this property:
-	private $table;
-
-	// Add this constructor:
-	public function __construct({{entity_name}}Table $table)
+	public function getTable()
 	{
-		$this->table = $table;
+		$dbAdapter = $this->getEvent()->getApplication()->getServiceManager()->get(AdapterInterface::class);
+		//$dbAdapter = $container->get(AdapterInterface::class);
+		$resultSetPrototype = new ResultSet();
+		$resultSetPrototype->setArrayObjectPrototype(new City());
+		$tableGateway = new TableGateway('{{entity.name|slugify}}', $dbAdapter, null, $resultSetPrototype);
+		return $tableGateway;
 	}
 
 {%for operation, actions in crud %}

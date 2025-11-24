@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace {{module}}\Form;
+namespace {{module}}\Model;
 
 class {{entity.name}}Data
 {
 {%for column in entity.dbTable.columns %}
-	public {{column|dataDeclare}};
+	{{column|dataDeclare}};
 {%endfor%}
 
 	public function exchangeArray(array $array): void

@@ -42,15 +42,12 @@ class {{entity.name}}Filter extends \{{module}}\Model\{{entity.name}}Data implem
 		$inputFilter = new InputFilter();
 
 {%for column in entity.dbTable.columns %}
-		$this->{{column.name}} = ! empty($array['{{column.name}}']) ? $array['{{column.name}}'] : null;
-
-
 		$inputFilter->add([
-			'name' => '.{{column.name}}',
+			'name' => '{{column.name}}',
 			'required' => {%if column.isNotNull %}true{%else%}false{%endif%},
 			'filters' => [
 {%for filters in entity.dbTable.columns|columnsAsFilter[column.name] %}
-				['name' => '{{filters}}'],
+				['name' => {{filters}}],
 {%endfor%}
 			],
 		]);

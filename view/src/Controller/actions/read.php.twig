@@ -3,11 +3,11 @@
 	/* READ[{%for verb in methods %}{%if not loop.first%}|{%endif%}{{verb}}{%endfor%}] */
 	public function {{action}}Action()
 	{
+		$rowset = $this->getTable()->select();
+		$row = $rowset->current();
+
 		return new ViewModel([
-{%for fk, table in foreignKey %}
-			//'{{fk}}' => $route_{{fk}},
-{%endfor%}
-			'operations' => $this->table->fetchAll(),
+			'{{entity.name|variabilize(true, '')}}' => $rowset
 		]);
 	}
 

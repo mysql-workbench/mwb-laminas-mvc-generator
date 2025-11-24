@@ -4,41 +4,31 @@
 	public function {{action}}Action()
 	{
 		$request = $this->getRequest();
-{% set owner_mandatory = false %}
-{% set op = '' %}
-{% set conditions = '' %}
-{%for key, value in primaryKey %}
-		$route_{{ key }} = (int) $this->params()->fromRoute('{{ key }}', 0);
-		$mandatory_{{key}} = (int) $this->params()->fromRoute('{{key}}', 0);
-	{% set conditions = conditions ~ op ~ '$route_' ~ key %}
-	{% set op = ' && ' %}
-{%endfor%}
 
-{%if owner_mandatory %}
-{%endif%}
-		if (! ({{conditions}}) ) {
-			return $this->redirect()->toRoute('{{entity_name|slugify}}');
+{%for key, table in entity.dbPKColumns %}
+		$route_id = (int) $this->params()->fromRoute('id', 0);
+{% endfor %}
+
+		if (! ($route_id) ) {
+			return $this->redirect()->toRoute('application', ['controller' => '{{entity.name|slugify}}']);
 		}
 
 		if ($request->isPost()) {
 			$del = $request->getPost('del', 'No');
 
 			if ($del == 'Yes') {
-{%for pk, table in primaryKey %}
-				$post_{{pk}} = (int) $request->getPost('{{pk}}');
-{%endfor%}
-				$this->table->delete{{entity_name}}({%for pk, table in primaryKey %}{%if not loop.first%}, {%endif%}$post_{{pk}}{%endfor%}));
+				$post_id = (int) $request->getPost('id');
+				// asert 
+				$this->getTable()->delete(['city_id'=>$post_id]);
+				return $this->redirect()->toRoute('application', ['controller' => '{{entity.name|slugify}}']);
+			} else {
+				// Redirect to list of albums
+				return $this->redirect()->toRoute('application', ['controller' => '{{entity.name|slugify}}']);
 			}
-
-			// Redirect to list of albums
-			return $this->redirect()->toRoute('{{entity_name}}');
+		} else {
+			{{entity.name|variabilize}}Rowset = $this->getTable()->select([{%for key, table in entity.dbPKColumns %}{%if not loop.first%}, {%endif%}'{{key}}'=>$route_id{%endfor%}]);
+			{{entity.name|variabilize}}Row = {{entity.name|variabilize}}Rowset->current();
+			return ['{{entity.name|slugify}}' => {{entity.name|variabilize}}Row];// use DeleteForm ?
 		}
-
-		return [
-{%for pk, table in primaryKey %}
-			'{{pk}}' => $route_{{pk}},
-{%endfor%}
-			'{{entity_name|slugify}}' => $this->table->get{{entity_name}}({%for pk, table in primaryKey %}{%if not loop.first%}, {%endif%}$route_{{pk}}{%endfor%}),
-		];
 	}
 

@@ -1,7 +1,7 @@
 <?php
 
 // generate by github.com/mysql-workbench/mwb-laminas-mv-generator on {{ "now"|date("d/m/Y") }}
-// <root>/module/{{ module }}/view/{{entity.name|slugify}}/{{ action }}.phtml:
+// <root>/module/{{module|slugify}}/view/{{entity.name|slugify}}/{{ action }}.phtml:
 
 $title = 'Create {{entity.name|verbalize}}';
 
@@ -22,7 +22,7 @@ $element_{{ property.dbColumn.name }}->setAttribute('placeholder', 'placeholder_
 $element_submit = $form->get('submit');
 $element_submit->setAttribute('class', 'btn btn-primary');
 
-$form->setAttribute('action', $this->url('{{ controller|lower }}', ['action' => 'edit'{%for key, table in primaryKey %}, '{{ key }}'=>{{entity.name|variabilize}}->{{ key }}{%endfor%}]));
+$form->setAttribute('action', $this->url('{{module|slugify}}', ['controller' => '{{entity.name|slugify}}', 'action' => 'edit'{%for key, table in entity.dbPKColumns %}, 'id'=>$element_{{key}}->getValue(){%endfor%}]));
 $form->prepare();
 
 echo '  '.$this->form()->openTag($form);
@@ -31,26 +31,21 @@ echo '  '.$this->form()->openTag($form);
 
 ?>
 {% for column in entity.dbTable.columns %}
-{%if column.name in primaryKey %}
+{%if entity.dbPKColumns[column.name] %}
 {%else%}
-{%if column.name in foreignKey %}
-<!-- select foreignKey="{{column.name}}" -->
-{%else%}
-{%endif%}
   <div class="form-group">
     <?=  $this->formLabel($element_{{ column.name }}) ?>
     <?=  $this->formElement($element_{{ column.name }}) ?>
     <?=  $this->formElementErrors()->render($element_{{ column.name }}, ['class' => 'help-block']) ?>
   </div>
 {%endif%}
-
 {% endfor %}
 
-{%for key in primaryKey %}
-    <?= $this->formHidden($element_{{key}}) ?>
-{%endfor%}
-
 <?php 
+
+{%for key, table in entity.dbPKColumns %}
+echo $this->formHidden($element_{{key}});
+{%endfor%}
 
 echo $this->formSubmit($element_submit);
 //echo $this->formReset($element_reset);
