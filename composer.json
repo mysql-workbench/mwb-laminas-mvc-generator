@@ -33,7 +33,7 @@
     ],
     "require": {
         "mysql-workbench/mwb-orm": "^1.0.1",
-        "laminas/laminas-filter": "^3.4",
+        "laminas/laminas-filter": "^2.41",
         "twig/twig": "^3.22",
         "doctrine/inflector": "^2.1",
         "phpmyadmin/sql-parser": "^6.0"
