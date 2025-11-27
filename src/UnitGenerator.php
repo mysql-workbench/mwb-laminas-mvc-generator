@@ -614,42 +614,6 @@ class UnitGenerator extends BaseGenerator
 		return $entities;
 	}
 
-	private function findPrimaryKeys($table) {
-		$primaryKeys = [];
-		foreach ($table->indices as $index) {
-			if ($index->isPrimary) {
-				foreach ($index->columns as $indexColumn) {
-					$primaryKeys[] = $indexColumn->referencedColumn->name;
-				}
-			}
-		}
-		return $primaryKeys;
-	}
-
-	private function findKeys($table) {
-		$primaryKeys = $this->findPrimaryKeys($table);
-		$foreignPrimaryKeys = [];
-		$foreignKeys = [];
-		foreach ($table->foreignKeys as $foreignKey) {
-			// $foreignKey->referencedMandatory
-			// $foreignKey->mandatory
-			// $columns->columns
-			//var_dump($foreignKey->referencedTable->name);//      string(10) "statements"
-			//var_dump($foreignKey->columns[0]->name);//           string(13) "statements_id"
-			//var_dump($foreignKey->referencedColumns[0]->name);//  string(2) "id"
-
-			foreach ($foreignKey->columns as $foreignColumn) {
-				if (!$foreignColumn) continue;
-				if (in_array($foreignColumn->name, $primaryKeys)) {
-					$foreignPrimaryKeys[] = $foreignColumn->name;
-				} else {
-					$foreignKeys[] = $foreignColumn->name;
-				}
-			}
-		}
-		return ['primaries'=>$primaryKeys, 'foreignPrimaries'=>$foreignPrimaryKeys, 'foreigns'=>$foreignKeys];
-	}
-
 	protected function generateController($moduleName, $entity) {
 		$path = 'module/'.$moduleName.'/src/Controller';
 		`mkdir -p $this->pathExport/$path`;
@@ -684,7 +648,7 @@ class UnitGenerator extends BaseGenerator
 		$EntityName = $entity->name;
 		$Entity_Name = $filter->filter($EntityName);
 		$entity_name = strtolower($Entity_Name);
-		$path = 'module/'.$moduleName.'/view/'.$entity_name;
+		$path = 'module/'.$moduleName.'/view/'.strtolower($moduleName).'/'.$entity_name;
 		`mkdir -p $this->pathExport/$path`;
 
 		foreach ($this->config->crud[$crudName] as $actionName=>$methods) {

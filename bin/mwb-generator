@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+
+namespace Mwb\LaminasGenerator;
+
+if (file_exists($a = getcwd().'/vendor/autoload.php')) {
+    require $a;
+} else {
+    fwrite(STDERR, 'Cannot locate autoloader; please run "composer install"' . PHP_EOL);
+    exit(1);
+}
+
+
+$command = new Command();
+exit($command(array_slice($argv, 1)));
+

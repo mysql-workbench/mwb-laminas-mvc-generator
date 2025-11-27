@@ -16,11 +16,11 @@ use Laminas\Filter\ToFloat;
 use Laminas\Filter\FilterChain;
 
 use Laminas\InputFilter\InputFilter;
-use Laminas\InputFilter\InputFilterAwareInterface;
+// use Laminas\InputFilter\InputFilterAwareInterface;
 use Laminas\InputFilter\InputFilterInterface;
 use Laminas\Validator\StringLength;
 
-class {{entity.name}}Filter extends \{{module}}\Model\{{entity.name}}Data implements InputFilterAwareInterface
+class {{entity.name}}Filter extends \{{module}}\Model\{{entity.name}}Data // implements InputFilterAwareInterface
 {
 	private $inputFilter;
 
@@ -33,15 +33,38 @@ class {{entity.name}}Filter extends \{{module}}\Model\{{entity.name}}Data implem
 	}
 
 
-	public function getInputFilter()
+	public function getInputFilter($mandatoryPK=True)
 	{
 		if ($this->inputFilter) {
 			return $this->inputFilter;
 		}
 
 		$inputFilter = new InputFilter();
+		/* TODO: 
+		        'validators' => [
+				[
+					'name'    => GreaterThan::class,
+				        'options' => [
+				            'min' => 0,
+				        ],
+				],
+			],
+		*/
 
 {%for column in entity.dbTable.columns %}
+{%if entity.dbPKColumns[column.name] %}
+		if ($mandatoryPK) {
+			$inputFilter->add([
+				'name' => '{{column.name}}',
+				'required' => {%if column.isNotNull %}true{%else%}false{%endif%},
+				'filters' => [
+{%for filters in entity.dbTable.columns|columnsAsFilter[column.name] %}
+					['name' => {{filters}}],
+{%endfor%}
+				],
+			]);
+		}
+{%else%}
 		$inputFilter->add([
 			'name' => '{{column.name}}',
 			'required' => {%if column.isNotNull %}true{%else%}false{%endif%},
@@ -51,6 +74,7 @@ class {{entity.name}}Filter extends \{{module}}\Model\{{entity.name}}Data implem
 {%endfor%}
 			],
 		]);
+{%endif%}
 {%endfor%}
 
 		$this->inputFilter = $inputFilter;

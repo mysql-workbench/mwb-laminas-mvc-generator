@@ -37,5 +37,8 @@
         "twig/twig": "^3.22",
         "doctrine/inflector": "^2.1",
         "phpmyadmin/sql-parser": "^6.0"
-    }
+    },
+    "bin": [
+        "bin/mwb-generator"
+    ]
 }

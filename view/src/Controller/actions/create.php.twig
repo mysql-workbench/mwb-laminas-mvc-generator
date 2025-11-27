@@ -11,7 +11,7 @@
 			{{entity.name|variabilize}} = new {{entity.name}}();
 			//$form->setHydrator(new ClassMethodsHydrator());
 			$form->bind({{entity.name|variabilize}});
-			$inputFilter = {{entity.name|variabilize}}->getInputFilter(False, False);// hasPrimaryKey=False
+			$inputFilter = {{entity.name|variabilize}}->getInputFilter(False);// hasPrimaryKey=False
 			$form->setInputFilter($inputFilter);
 			$form->setData($request->getPost());
 
