@@ -7,7 +7,7 @@
         "CRUD",
         "generator"
     ],
-    "version": "1.0.2",
+    "version": "1.0.3",
     "type": "library",
     "license": "GPL-3.0",
     "autoload": {
