@@ -21,7 +21,7 @@ class {{entity.name}}Form extends Form
             'name' => '{{column.name}}',
             'type' => {{column|formElementTypefy}},
             'options' => [
-                'label' => 'label_{{module|slugify}}_{{entity.dbTable.name}}-{{column.name}}',
+                'label' => 'label-{{module|slugify}}-{{entity.name|slugify}}-{{column.name}}',
             ],
         ]);
 {%endfor%}

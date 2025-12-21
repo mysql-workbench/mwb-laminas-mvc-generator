@@ -2,7 +2,8 @@
 
 return [
 {%for column in entity.dbTable.columns %}
-	'{{column.name}}' => 'label_{{module}}-{{entity.name}}-{{column.name|verbalize(false, true)}}',
+	'placeholder-{{module|slugify}}-{{entity.name|slugify}}-{{column.name}}' => 'Value of {{column.name|verbalize(false, true)}}',
+	'label-{{module|slugify}}-{{entity.name|slugify}}-{{column.name}}' => '{{column.name|verbalize(false, true)}}',
 {%endfor%}
 ];
 

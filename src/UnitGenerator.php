@@ -274,22 +274,59 @@ class BaseGenerator {
 				'com.mysql.rdbms.mysql.datatype.set'                =>               'Text::class',// ?
 			];
 
+/*
+SMALLINT
+VARCHAR
+SMALLINT
+TIMESTAMP
+*/
 			$userTypeElements = [
 				'MY_DEVISE'                => 'Text::class',
 				//'MY_DEVISE'                => '\\Application\\Filter\\ToDevise',
 			];
 
-			
 			if (isset($dbColumn->userType)) {
 				if (array_key_exists($dbColumn->userType->name, $userTypeElements)) {
-					$elementName = $userTypeElements[$dbColumn->userType->name];
+					$name  = 'com.mysql.rdbms.';
+					$name .= strtolower($dbColumn->userType->owner->name);
+					$name .= '.datatype.';
+					$name .= strtolower($dbColumn->userType->name);
+					$elementName = $userTypeElements[$name];
 				} else {
-					$elementName = $simpleTypeElements[$dbColumn->userType->actualType->name];
+					$name  = 'com.mysql.rdbms.';
+					$name .= strtolower($dbColumn->userType->actualType->owner->name);
+					$name .= '.datatype.';
+					$name .= strtolower($dbColumn->userType->actualType->name);
+					$elementName = $simpleTypeElements[$name];//$dbColumn->userType->actualType->name
 				}
-			} elseif (array_key_exists($dbColumn->simpleType->name, $simpleTypeElements)) {
-				$elementName = $simpleTypeElements[$dbColumn->simpleType->name];
 			} else {
-				echo 'Warning : simpleElement "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+				$name  = 'com.mysql.rdbms.';
+				$name .= strtolower($dbColumn->simpleType->owner->name);
+				$name .= '.datatype.';
+				$name .= strtolower($dbColumn->simpleType->name);
+				if (array_key_exists($name, $simpleTypeElements)) {
+					$elementName = $simpleTypeElements[$name];//$dbColumn->simpleType->name
+				} else {
+$logFile = __DIR__.'/../tmp/log.txt';
+/*
+$msg = '';
+$simpleDatatypes = $dbColumn->owner->owner->owner->simpleDatatypes;
+foreach($simpleDatatypes as $simpleDatatype) {
+//if (empty($simpleDatatype)) continue;
+$msg .= $simpleDatatype->owner->name.', ';
+}
+*/
+
+/*
+$msg = "{$dbColumn->owner->name}.{$dbColumn->name}:";
+$msg .= $dbColumn->simpleType->name . '!';
+`echo $msg >> $logFile`;
+*/
+				$msg = 'Warning : simpleElement "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+`echo $msg >> $logFile`;
+/*
+*/
+				}
 			}
 
 			return $elementName;
@@ -322,14 +359,14 @@ class BaseGenerator {
 				'com.mysql.rdbms.mysql.datatype.mediumblob'         => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.longblob'           => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.json'               => 'string',
-				'com.mysql.rdbms.mysql.datatype.datetime'           => 'mixed',
-				'com.mysql.rdbms.mysql.datatype.datetime_f'         => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.datetime'           =>     'string',
+				'com.mysql.rdbms.mysql.datatype.datetime_f'         =>     'string',
 				'com.mysql.rdbms.mysql.datatype.date'               => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.time'               => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.time_f'             => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.year'               => 'mixed',
-				'com.mysql.rdbms.mysql.datatype.timestamp'          => 'mixed',
-				'com.mysql.rdbms.mysql.datatype.timestamp_f'        => 'mixed',
+				'com.mysql.rdbms.mysql.datatype.timestamp'          =>    'string',
+				'com.mysql.rdbms.mysql.datatype.timestamp_f'        =>    'float',
 				'com.mysql.rdbms.mysql.datatype.geometry'           => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.point'              => 'mixed',
 				'com.mysql.rdbms.mysql.datatype.linestring'         => 'mixed',
@@ -345,15 +382,27 @@ class BaseGenerator {
 
 			$propertyDecl = '';
 			if (isset($dbColumn->userType)) {
-				$type = $simpleTypes[$dbColumn->userType->actualType->name];
+				$name  = 'com.mysql.rdbms.';
+				$name .= strtolower($dbColumn->userType->actualType->owner->name);
+				$name .= '.datatype.';
+				$name .= strtolower($dbColumn->userType->actualType->name);
+				$type = $simpleTypes[$name];
 				//$commentType = '// '.$type.' => ' . $dbColumn->userType->name . '<'.$dbColumn->userType->sqlDefinition.'>('.$dbColumn->userType->flags.') so use specifique Filter';
-			} else if ( array_key_exists($dbColumn->simpleType->name, $simpleTypes) ) {
-				$type = $simpleTypes[$dbColumn->simpleType->name];
-				//$commentType = '// ' . $type;
 			} else {
-				echo 'Warning : simpleType "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
-			}
+				$name  = 'com.mysql.rdbms.';
+				$name .= strtolower($dbColumn->simpleType->owner->name);
+				$name .= '.datatype.';
+				$name .= strtolower($dbColumn->simpleType->name);
+				if (array_key_exists($name, $simpleTypes)) {
+$logFile = __DIR__.'/../tmp/log.txt';
+`echo {$dbColumn->simpleType->name} >> $logFile`;
 
+					$type = $simpleTypes[$name];
+					//$commentType = '// ' . $type;
+				} else {
+					echo 'Warning : simpleType "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+				}
+			}
 
 			$propertyDecl = 'public ?'.$type.' $'.$dbColumn->name.' = Null';
 			return $propertyDecl;
@@ -420,18 +469,28 @@ class BaseGenerator {
 				$filterName = Null;
 				$commentType = '';
 				if (isset($dbColumn->userType)) {
-					if ( array_key_exists($dbColumn->userType->name, $userTypeFilters) ) {
+					$name  = 'com.mysql.rdbms.';
+					$name .= strtolower($dbColumn->userType->actualType->owner->name);
+					$name .= '.datatype.';
+					$name .= strtolower($dbColumn->userType->actualType->name);
+					if ( array_key_exists($name, $userTypeFilters) ) {
 						$filterName = $userTypeFilters[$dbColumn->userType->name].'::class';
 					} else {
-						$filterName = $simpleTypeFilters[$dbColumn->userType->actualType->name];
+						$filterName = $simpleTypeFilters[$name];
 					}
 					$commentType = ' // ?';
-				} else if ( array_key_exists($dbColumn->simpleType->name, $simpleTypeFilters) ) {
-					$filterName = $simpleTypeFilters[$dbColumn->simpleType->name];
-					$commentType = '// ' . $filterName;
 				} else {
-					echo 'Warning : simpleType "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
-					// 'ToNull::class'
+					$name  = 'com.mysql.rdbms.';
+					$name .= strtolower($dbColumn->simpleType->owner->name);
+					$name .= '.datatype.';
+					$name .= strtolower($dbColumn->simpleType->name);
+					if ( array_key_exists($name, $simpleTypeFilters) ) {
+						$filterName = $simpleTypeFilters[$name];
+						$commentType = '// ' . $filterName;
+					} else {
+						echo 'Warning : simpleType "'.$dbColumn->simpleType->name . '" not found' .PHP_EOL;
+						// 'ToNull::class'
+					}
 				}
 				if ($filterName) 
 					$columnsFilters[$dbColumn->name][] = $filterName;
@@ -461,6 +520,9 @@ class BaseGenerator {
 		// $twig->loadExtension(new CustomExtension();
 		// Inject:
 		//$renderer = new TwigRenderer($twig);
+	}
+	public function setConfigOptions($name, $options) {
+		$this->config->$name = $options;
 	}
 }
 
@@ -593,8 +655,11 @@ entities:
 
 class UnitGenerator extends BaseGenerator
 {
+	public $count;
+
 	protected $mwbOrm;
 	protected $pathExport = Null;// .'../build'
+	protected $translate_filenames = [];
 
 	public function __construct($filepath) {
 		parent::__construct();
@@ -629,6 +694,7 @@ class UnitGenerator extends BaseGenerator
 		if ($this->enableExport) {
 			$filename = $entity->name . 'Controller.php';
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -666,6 +732,7 @@ class UnitGenerator extends BaseGenerator
 			if ($this->enableExport) {
 				$filename = $actionName . '.phtml';
 				file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+				$this->count++;
 			} else {
 				echo $output . PHP_EOL;
 			}
@@ -684,6 +751,7 @@ class UnitGenerator extends BaseGenerator
 		if ($this->enableExport) {
 			$filename = $entity->name . 'Form.php';
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -700,6 +768,7 @@ class UnitGenerator extends BaseGenerator
 		if ($this->enableExport) {
 			$filename = $entity->name . '.php';
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -716,6 +785,7 @@ class UnitGenerator extends BaseGenerator
 		if ($this->enableExport) {
 			$filename = $entity->name . 'Data.php';
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -733,6 +803,7 @@ class UnitGenerator extends BaseGenerator
 		if ($this->enableExport) {
 			$filename = $entity->name . 'Table.php';
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -749,6 +820,24 @@ class UnitGenerator extends BaseGenerator
 		if ($this->enableExport) {
 			$filename = $entity->name . 'Filter.php';
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
+	protected function generateHydrator($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Hydrator';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Hydrator/hydrator.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'Hydrator.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -764,7 +853,24 @@ class UnitGenerator extends BaseGenerator
 		]);
 		if ($this->enableExport) {
 			$filename = $entity->name . '.en_US.php';
+			$this->translate_filenames[] = $filename;
 			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+	protected function generateTranslateFile($moduleName) {
+		$path = 'module/'.$moduleName.'/language';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('language/translate.php.twig', [// $actionCode
+			'translate_filenames' => $this->translate_filenames,
+		]);
+		if ($this->enableExport) {
+			$filename = 'en_US.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
 		} else {
 			echo $output . PHP_EOL;
 		}
@@ -775,6 +881,7 @@ class UnitGenerator extends BaseGenerator
 		$this->enableExport = $enableExport;
 		$moduleName = 'Application';
 
+		$this->count = 0;
 		foreach ($this->getEntities() as $entity) {
 			$this->generateController($moduleName, $entity);
 			$this->generateForm($moduleName, $entity);
@@ -789,6 +896,8 @@ class UnitGenerator extends BaseGenerator
 				$this->generateView($moduleName, $entity, $crudName);
 			}
 		}
+		$this->generateTranslateFile($moduleName);
+		return $this->count;
 	}
 }
 

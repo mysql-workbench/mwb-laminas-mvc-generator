@@ -21,7 +21,9 @@
 					//$this->table->saveCity($city);
 					$table = $this->getTable();
 					$data = {{entity.name|variabilize}}->getArrayCopy();
-					unset($data['city_id']);
+{%for key, table in entity.dbPKColumns %}
+					unset($data['{{key}}']);
+{%endfor%}
 					{{entity.name|variabilize}}Rowset = $table->insert($data);
 					return $this->redirect()->toRoute('application', ['controller' => '{{entity.name|slugify}}', 'action' => '{{action}}', 'id'=>$table->getLastInsertValue()]);
 

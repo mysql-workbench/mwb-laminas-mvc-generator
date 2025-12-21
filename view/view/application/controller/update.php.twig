@@ -14,7 +14,7 @@ $element_{{ key }} = $form->get('{{ key }}');
 {% endfor%}{% for property in entity.properties%}{%if property.dbColumn.name in primaryKey %}{%else%}
 $element_{{ property.dbColumn.name }} = $form->get('{{ property.dbColumn.name }}');
 $element_{{ property.dbColumn.name }}->setAttribute('class', 'form-control');
-$element_{{ property.dbColumn.name }}->setAttribute('placeholder', 'placeholder_{{entity.name}}-{{ property.dbColumn.name }}');
+$element_{{ property.dbColumn.name }}->setAttribute('placeholder', 'placeholder-{{module|slugify}}-{{entity.name|slugify}}-{{column.name}}');
 {%endif%}
 
 {% endfor %}

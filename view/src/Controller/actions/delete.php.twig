@@ -19,7 +19,7 @@
 			if ($del == 'Yes') {
 				$post_id = (int) $request->getPost('id');
 				// asert 
-				$this->getTable()->delete(['city_id'=>$post_id]);
+				$this->getTable()->delete([{%for key, table in entity.dbPKColumns %}'{{key}}' => $post_id, {% endfor %}]);
 				return $this->redirect()->toRoute('application', ['controller' => '{{entity.name|slugify}}']);
 			} else {
 				// Redirect to list of albums

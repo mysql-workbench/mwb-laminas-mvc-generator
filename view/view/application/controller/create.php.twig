@@ -14,7 +14,7 @@ $title = 'Create {{entity.dbTable.name|verbalize}}';
 {%else%}
 $element_{{ column.name }} = $form->get('{{ column.name }}');
 $element_{{ column.name }}->setAttribute('class', 'form-control');
-$element_{{ column.name }}->setAttribute('placeholder', 'placeholder_{{entity.dbTable.name}}-{{ column.name }}');
+$element_{{ column.name }}->setAttribute('placeholder', 'placeholder-{{module|slugify}}-{{entity.name|slugify}}-{{column.name}}');
 {%endif%}
 
 {% endfor %}

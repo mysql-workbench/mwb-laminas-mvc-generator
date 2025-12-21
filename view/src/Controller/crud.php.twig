@@ -24,7 +24,7 @@ class {{entity.name}}Controller extends AbstractActionController
 		$dbAdapter = $this->getEvent()->getApplication()->getServiceManager()->get(AdapterInterface::class);
 		//$dbAdapter = $container->get(AdapterInterface::class);
 		$resultSetPrototype = new ResultSet();
-		$resultSetPrototype->setArrayObjectPrototype(new City());
+		$resultSetPrototype->setArrayObjectPrototype(new {{entity.name}}());
 		$tableGateway = new TableGateway('{{entity.name|slugify}}', $dbAdapter, null, $resultSetPrototype);
 		return $tableGateway;
 	}

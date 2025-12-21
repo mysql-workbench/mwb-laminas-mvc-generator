@@ -1,0 +1,34 @@
+<?php
+
+namespace Application\Hydrator;
+
+use Laminas\Hydrator\HydratorInterface;
+
+
+use Application\Model\{{entity.name}};
+//use Application\Model\Devise;
+
+// montant hydrator
+class {{entity.name}}Hydrator implements HydratorInterface
+{
+	function extract(object $model):array {
+		return [
+{%for column in entity.dbTable.columns %}
+			'{{ column.name }}'            => $model->{{ column.name }},
+{#                      'montant'       => isset($model->montant) ? $model->montant->toUnits() : 0.0, #}
+
+{% endfor %}
+		];
+	}
+	function hydrate(array $data, object $object) {
+		//if (empty($object)) {$object = new Devise();}
+{%for column in entity.dbTable.columns %}
+		$object->{{ column.name }}            = ! empty($data['{{ column.name }}'])            ? $data['{{ column.name }}']            : null;
+{#              $object->montant       = ! empty($data['montant'])       ? Devise::fromUnits($data['montant'])       : new Devise(111); #}
+
+{% endfor %}
+
+		return $object;
+	}
+}
+

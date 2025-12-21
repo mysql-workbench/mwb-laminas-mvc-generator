@@ -1,0 +1,9 @@
+<?php
+
+return array_merge(
+{%for translate_filename in translate_filenames %}
+	include __DIR__ . '/{{translate_filename}}'{%if not loop.last%},{%endif%}
+
+{%endfor%}
+);
+

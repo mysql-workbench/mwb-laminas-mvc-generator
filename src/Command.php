@@ -39,8 +39,8 @@ class Command
                 return 0;
             case 'application':
 		$generator = new UnitGenerator(getcwd() . '/data/sakila_full.mwb');
-		$generator->generate(getcwd() . '/tmp', True);
-		return "\e[32mSuccess\e[0m : 31 files generated in ./tmp\n";
+		$count = $generator->generate(getcwd() . '/tmp', True);
+		return "\e[32mSuccess\e[0m : ".$count." files generated in ./tmp\n";
             default:
                 fwrite(STDERR, 'Unrecognized argument.' . PHP_EOL . PHP_EOL);
                 $help(STDERR);
