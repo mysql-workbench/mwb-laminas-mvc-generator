@@ -40,5 +40,8 @@
     },
     "bin": [
         "bin/mwb-generator"
-    ]
+    ],
+    "require-dev": {
+        "laminas/laminas-cli": "^1.13"
+    }
 }

@@ -14,6 +14,7 @@ use const STDERR;
 /** @final */
 class Command
 {
+    public $arguments;
     /**
      * Handle the CLI arguments.
      *
@@ -30,16 +31,34 @@ class Command
             return 1;
         }
 
-        $argument = array_shift($arguments);
+/*
+        $option = array_shift($arguments);
+	while($option->next) {
+		try {
+		}catch (Option('s--source:string[]', $argument)) {
+		}catch (Option('t--type:string', $argument)) {
+		}catch (Option('o--output?string', $argument)) {
+		}catch (Option('e--?bool', $argument)) {
+		}catch (Option('h--help', $argument)) {
+		}catch (Option('application', $argument)) {
+		}
+	}
 
-        switch ($argument) {
+        switch (GetOption($option)) {
             case '-h':
             case '--help':
                 $help();
                 return 0;
-            case 'application':
-		$generator = new UnitGenerator(getcwd() . '/data/sakila_full.mwb');
-		$count = $generator->generate(getcwd() . '/tmp', True);
+            case OptionCatch('s--source:string[]', $argument):
+            case OptionCatch('t--type:string', $argument):
+            case OptionCatch('o--output?string', $argument):
+            case OptionCatch('e--?bool', $argument):
+            case OptionCatch('h--help', $argument):
+            case OptionCatch('application', $argument):
+
+		//$generator = new UnitGenerator(getcwd() . '/data/sakila_full.mwb');
+		//$count = $generator->generate(getcwd() . '/tmp', True);
+		  $count = 0;
 		return "\e[32mSuccess\e[0m : ".$count." files generated in ./tmp\n";
             default:
                 fwrite(STDERR, 'Unrecognized argument.' . PHP_EOL . PHP_EOL);
@@ -47,4 +66,5 @@ class Command
                 return 1;
         }
     }
+*/
 }

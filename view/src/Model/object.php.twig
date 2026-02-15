@@ -6,5 +6,40 @@ namespace {{module}}\Model;
 
 class {{entity.name}} extends \{{module}}\Filter\{{entity.name}}Filter
 {
+{%for relation in entity.getRelations() %}
+{%if relation.isReferenced %}
+	public {{relation.name|variabilize(false)}};
+{%else%}
+	public {{relation.name|variabilize(true)}};
+{%endif%}
+{%endfor%}
+
+{%for relation in entity.getRelations() %}
+	/**
+	 * @type {{relation.type}}
+{%if relation.type == "ManyToOne" %}
+	 * @isOwned {{relation.isReferenced}}
+{%else%}
+	 * @isForeign
+{%endif%}
+	 * @referencing {{relation.referencingEntity.name}}
+	 * @referenced  {{relation.referencedEntity.name}}
+	 */
+{%if relation.isReferenced %}
+	public function get{{relation.name|entityify(false)}}() {
+		return {{relation.name|variabilize(false, '$this->')}};
+	}
+	public function set{{relation.name|entityify(false)}}({{relation.name|variabilize(false, '$')}}) {
+		{{relation.name|variabilize(false, '$this->')}} = {{relation.name|variabilize(false, '$')}};
+	}
+{%else%}
+	public function get{{relation.name|entityify(true)}}() {
+		return {{relation.name|variabilize(true, '$this->')}};
+	}
+	public function set{{relation.name|entityify(true)}}({{relation.name|variabilize(true, '$')}}) {
+		{{relation.name|variabilize(true, '$this->')}} = {{relation.name|variabilize(true, '$')}};
+	}
+{%endif%}
+{%endfor%}
 }
 

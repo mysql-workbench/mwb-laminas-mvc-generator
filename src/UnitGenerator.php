@@ -110,18 +110,31 @@ class StandardNaming implements NamingStrategy
 		// entityify, classify, tableClass, gatewayify
 	}
 
-	public function entityify($name_code, $pluralize=False) {
+	/**
+	 * @var $pluralize Null|True|False
+	 * Null mean keep the original plurale
+	 * False mean singularize
+	 * True mean pluralize
+	 */
+	public function entityify($name_code, $pluralize=Null) {
 		$names = explode('_', $name_code);
 		$last = array_pop($names);
+
 		$parts = [];
 		foreach($names as $name) {
-			$parts[] = $this->inflectorFilter->singularize($name);
+			if (Null===$pluralize) {
+				$parts[] = $name;
+			} else {
+				$parts[] = $this->inflectorFilter->singularize($name);
+			}
 		}
-		if ($pluralize) {
+
+		if (False===$pluralize) {
 			$last = $this->inflectorFilter->pluralize($last);
-		} else {
+		} else if (True===$pluralize) {
 			$last = $this->inflectorFilter->singularize($last);
 		}
+
 		$parts[] = $last;
 		$name_code = implode('_', $parts);
 		return $name_code;
@@ -139,6 +152,7 @@ class Crud {
 }
 
 class ConfigGenerator {
+	public $output;
 	public $whiteTables = [
 		//'accounts', 'companies', 'companies_associates',
 		//'statements',
@@ -158,7 +172,7 @@ class ConfigGenerator {
 }
 
 class BaseGenerator {
-	protected $config;
+	public $config;
 	protected NamingStrategy $naming;
 
 	public $enableExport = False;
@@ -187,22 +201,22 @@ class BaseGenerator {
 			return $string;
 		});
 */
-		$entityfyFilter = new TwigFilter('entityify', function($string) use($naming) {
-			$string = $naming->entityify($string, False);
+		$entityfyFilter = new TwigFilter('entityify', function($string, $pluralize=Null) use($naming) {
+			$string = $naming->entityify($string, $pluralize);
 			
 			$filter = new UnderscoreToCamelCase($string); // => 'operationDescription'
 			$string = $filter->filter($string);
 			return $string;
 		});
-		$variabilizeFilter = new TwigFilter('variabilize', function($string, $pluralize=False, $preffix='$') use($naming) {
+		$variabilizeFilter = new TwigFilter('variabilize', function($string, $pluralize=Null, $preffix='$') use($naming) {
 			$string = $naming->entityify($string, $pluralize);
 			
 			$filter = new UnderscoreToCamelCase($string); // => 'operationDescription'
 			$string = $filter->filter($string);
 			$string = lcfirst($string);
 			return $preffix.$string;
-		});
-		$slugifyFilter = new TwigFilter('slugify', function($string, $pluralize=False) use($naming) {
+		}, ['is_safe'=>['html']]);
+		$slugifyFilter = new TwigFilter('slugify', function($string, $pluralize=Null) use($naming) {
 			$string = $naming->entityify($string, $pluralize);
 			
 			$filter = new CamelCaseToDash($string); // => 'operationDescription'
@@ -210,7 +224,7 @@ class BaseGenerator {
 			$string = strtolower($string);
 			return $string;
 		});
-		$verbalizeFilter = new TwigFilter('verbalize', function($string, $pluralize=False, $useLast=False) use($naming) {
+		$verbalizeFilter = new TwigFilter('verbalize', function($string, $pluralize=Null, $useLast=False) use($naming) {
 			$string = $naming->entityify($string, $pluralize);
 			
 			$string = strtolower($string);
@@ -307,7 +321,7 @@ TIMESTAMP
 				if (array_key_exists($name, $simpleTypeElements)) {
 					$elementName = $simpleTypeElements[$name];//$dbColumn->simpleType->name
 				} else {
-$logFile = __DIR__.'/../tmp/log.txt';
+$logFile = $this->config->output . '/log.txt';
 /*
 $msg = '';
 $simpleDatatypes = $dbColumn->owner->owner->owner->simpleDatatypes;
@@ -394,7 +408,7 @@ $msg .= $dbColumn->simpleType->name . '!';
 				$name .= '.datatype.';
 				$name .= strtolower($dbColumn->simpleType->name);
 				if (array_key_exists($name, $simpleTypes)) {
-$logFile = __DIR__.'/../tmp/log.txt';
+$logFile = $this->config->output.'/log.txt';
 `echo {$dbColumn->simpleType->name} >> $logFile`;
 
 					$type = $simpleTypes[$name];
@@ -664,6 +678,7 @@ class UnitGenerator extends BaseGenerator
 	public function __construct($filepath) {
 		parent::__construct();
 		//$this->mwbDocument = \Mwb\Document::load($filepath);
+		//$this->ormDocument = \Mwb\Orm\Document::Load($filepath);
 		$this->mwbOrm = \Mwb\Orm\Loader::Load($filepath);
 	}
 
@@ -809,6 +824,23 @@ class UnitGenerator extends BaseGenerator
 		}
 	}
 
+	protected function generateTableFactory($moduleName, $entity) {
+		$path = 'module/'.$moduleName.'/src/Model';
+		`mkdir -p $this->pathExport/$path`;
+
+		$output = $this->twig->render('src/Model/table-factory.php.twig', [// $actionCode
+			'module' => $moduleName,
+			'entity' => $entity,
+		]);
+		if ($this->enableExport) {
+			$filename = $entity->name . 'TableFactory.php';
+			file_put_contents($this->pathExport.'/'.$path.'/'.$filename, $output);
+			$this->count++;
+		} else {
+			echo $output . PHP_EOL;
+		}
+	}
+
 	protected function generateFilter($moduleName, $entity) {
 		$path = 'module/'.$moduleName.'/src/Filter';
 		`mkdir -p $this->pathExport/$path`;
@@ -881,6 +913,7 @@ class UnitGenerator extends BaseGenerator
 		$this->enableExport = $enableExport;
 		$moduleName = 'Application';
 
+		$this->setConfigOptions('output', $path);
 		$this->count = 0;
 		foreach ($this->getEntities() as $entity) {
 			$this->generateController($moduleName, $entity);
@@ -888,6 +921,7 @@ class UnitGenerator extends BaseGenerator
 			$this->generateObject($moduleName, $entity);
 			$this->generateData($moduleName, $entity);
 			$this->generateTable($moduleName, $entity);
+			$this->generateTableFactory($moduleName, $entity);
 			$this->generateFilter($moduleName, $entity);
 			$this->generateTranslate($moduleName, $entity);
 			//$this->generateHydrator($moduleName, $entity);

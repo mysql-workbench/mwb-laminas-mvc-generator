@@ -12,14 +12,18 @@ $title = 'My {{entity.name|verbalize}}';
     <a href="<?= $this->url('{{module|slugify}}', ['controller' => '{{entity.name|slugify}}', 'action' => 'add', 'id' => 0, 'id_parent' => 0]) ?>">Add new {{entity.name|verbalize(false, true)}}</a>
 </p>
 
-<table class="table">
+<section class="dataview table-responsive  bg-light rounded-3">
+<table class="table table-bordered table-grouped table-hover">
+    <thead class="table-dark">
     <tr>
 {% for column in entity.dbTable.columns %}
         <th><?= $this->translate('thead_{{entity.name}}-{{ column.name }}'); ?></th>
 {% endfor %}
         <th>&nbsp;</th>
     </tr>
+    </thead>
 
+    <tbody class="table-light">
 <?php foreach ( {{ entity.name|variabilize(true) }} as {{ entity.name|variabilize }}) : ?>    <tr>
 {% for column in entity.dbTable.columns %}
         <td><?= $this->escapeHtml({{ entity.name|variabilize }}->{{ column.name }}) ?></td>
@@ -31,7 +35,9 @@ $title = 'My {{entity.name|verbalize}}';
         </td>
     </tr>
 <?php endforeach; ?>
+    </tbody>
 </table>
+</section>
 
 
 

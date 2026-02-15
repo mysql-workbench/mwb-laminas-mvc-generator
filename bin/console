@@ -1,0 +1,71 @@
+#!/usr/bin/env php
+<?php
+
+namespace Mwb\LaminasGenerator;
+
+/*
+require __DIR__.'/../vendor/autoload.php';
+
+use Mwb\LaminasGenerator\Command_Generator;
+
+// #[AsCommand(name: 'app:create-user')]
+
+//$console
+$command = new Command_Generator();
+
+//$options = getopt("n:a::", ["nom:", "age::"]);
+
+//print_r($options);
+print_r($argv);
+$options = getopt("n:a:v", ["age:", "nom:", "v:"]);
+print_r($options);
+echo implode(' ', $argv), PHP_EOL;
+*/
+
+
+require __DIR__ . '/../../aventurine/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Mwb\LaminasGenerator\Command_Generator;
+use \Laminas\Cli\ApplicationFactory;
+
+
+
+
+
+$application = (new ApplicationFactory)();
+
+// Ajoute ta commande
+$application->add(new Command_Generator());
+
+// Execute l’application en utilisant les arguments du terminal
+$application->run();
+
+/*
+$application = new Application();
+
+// Ajouter la commande
+$application->add(new Command_Generator());
+
+
+// Créer un objet InputInterface avec des arguments simulés
+$input = new \Symfony\Component\Console\Input\ArrayInput([
+    'command' => 'app:create-user',
+    'name' => 'Mwb',
+    '--run-dry' => true,
+    '--white-list' => 'cities',
+    '--black-list' => ['users', 'socities'],
+]);
+//print_r($input->getOption('--white-list'));
+//print_r($argv);
+
+
+
+// Créer un objet OutputInterface pour la sortie
+$output = new \Symfony\Component\Console\Output\ConsoleOutput();
+
+// Exécuter la commande avec les arguments
+$application->run($input, $output);
+*/
+

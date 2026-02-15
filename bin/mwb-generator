@@ -10,7 +10,18 @@ if (file_exists($a = getcwd().'/vendor/autoload.php')) {
     exit(1);
 }
 
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
 
+#[AsCommand(
+    name: 'app:create-user|app:add-user|app:new-user',
+    description: 'Creates a new user.',
+)]
+
+$command = new Command_Generator();
+
+/*
 $command = new Command();
 exit($command(array_slice($argv, 1)));
+*/
 

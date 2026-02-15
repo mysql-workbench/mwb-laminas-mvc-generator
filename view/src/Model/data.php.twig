@@ -9,7 +9,13 @@ class {{entity.name}}Data
 {%for column in entity.dbTable.columns %}
 	{{column|dataDeclare}};
 {%endfor%}
+{%for column in entity.dbTable.columns %}
+	public function get{{column.name|entityify}}(){return $this->{{column.name}}; }
+	public function set{{column.name|entityify}}({{column.name|variabilize(false, '$')}}){ $this->{{column.name}} = {{column.name|variabilize(false, '$')}}; }
+{%endfor%}
 
+/**
+	// impldement populate() or :
 	public function exchangeArray(array $array): void
 	{
 {%for column in entity.dbTable.columns %}
@@ -17,6 +23,7 @@ class {{entity.name}}Data
 {%endfor%}
 	}
 
+	// impldementation needed by ?
 	public function getArrayCopy()
 	{
 		return [
@@ -25,6 +32,6 @@ class {{entity.name}}Data
 {%endfor%}
 		];
 	}
-
+*/
 }
 

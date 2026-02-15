@@ -2,20 +2,26 @@
 
 declare(strict_types=1);
 
-namespace {{module}}\Form;
+namespace {{module}}\Model;
 
 use RuntimeException;
 use Laminas\Db\TableGateway\TableGatewayInterface;
+use Laminas\Db\Sql\Select;
+{%for relation in entity.getRelations() %}
+use Application\Model\{{relation.name|entityify}}Table;
+{%endfor%}
 
 
 class {{entity.name}}Table
 {
-	private $tableGateway;
+	//private $tableGateway;
+	public function __construct(
+		private TableGatewayInterface $tableGateway
+{%for relation in entity.getRelations() %}
+		,private {{relation.name|entityify}}Table ${{relation.name}}Table
+{%endfor%}
+	) {}
 
-	public function __construct(TableGatewayInterface $tableGateway)
-	{
-		$this->tableGateway = $tableGateway;
-	}
 
 	public function fetchAll()
 	{
