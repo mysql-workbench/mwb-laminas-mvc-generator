@@ -22,9 +22,8 @@ print_r($options);
 echo implode(' ', $argv), PHP_EOL;
 */
 
-
-require __DIR__ . '/../../aventurine/vendor/autoload.php';
-require __DIR__ . '/../vendor/autoload.php';
+require getcwd() . '/vendor/autoload.php';
+//require __DIR__ . '/../vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use Mwb\LaminasGenerator\Command_Generator;
